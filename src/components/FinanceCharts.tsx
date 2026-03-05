@@ -1,5 +1,5 @@
 import { Bill, CATEGORY_COLORS, CATEGORY_LABELS, BillCategory } from '@/types/finance';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 interface FinanceChartsProps {
   bills: Bill[];
@@ -9,18 +9,23 @@ interface FinanceChartsProps {
 const FinanceCharts = ({ bills, monthlyData }: FinanceChartsProps) => {
   const categoryData = Object.entries(
     bills.reduce((acc, bill) => {
-      acc[bill.category] = (acc[bill.category] || 0) + bill.amount;
+      acc[bill.category] = (acc[bill.category] || 0) + Number(bill.amount);
       return acc;
     }, {} as Record<string, number>)
   ).map(([category, value]) => ({
-    name: CATEGORY_LABELS[category as BillCategory],
+    name: CATEGORY_LABELS[category as BillCategory] || category,
     value,
-    color: CATEGORY_COLORS[category as BillCategory],
+    color: CATEGORY_COLORS[category as BillCategory] || 'hsl(0,0%,50%)',
   }));
 
-  const totalPaid = bills.filter(b => b.status === 'pago').reduce((s, b) => s + b.amount, 0);
-  const totalPending = bills.filter(b => b.status === 'pendente').reduce((s, b) => s + b.amount, 0);
+  const totalPaid = bills.filter(b => b.status === 'pago').reduce((s, b) => s + Number(b.amount), 0);
+  const totalPending = bills.filter(b => b.status === 'pendente').reduce((s, b) => s + Number(b.amount), 0);
   const total = totalPaid + totalPending;
+
+  const statusData = [
+    { name: 'Pago', value: totalPaid, color: 'hsl(150, 60%, 45%)' },
+    { name: 'Pendente', value: totalPending, color: 'hsl(40, 90%, 55%)' },
+  ].filter(d => d.value > 0);
 
   const formatCurrency = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
@@ -42,50 +47,102 @@ const FinanceCharts = ({ bills, monthlyData }: FinanceChartsProps) => {
         </div>
       </div>
 
-      {/* Category Pie Chart */}
-      <div className="glass-card p-4">
-        <h3 className="text-sm font-display font-semibold mb-3">Gastos por Categoria</h3>
-        <div className="flex items-center gap-4">
-          <ResponsiveContainer width={120} height={120}>
-            <PieChart>
-              <Pie data={categoryData} dataKey="value" cx="50%" cy="50%" innerRadius={30} outerRadius={55} strokeWidth={0}>
-                {categoryData.map((entry, i) => (
-                  <Cell key={i} fill={entry.color} />
-                ))}
-              </Pie>
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="flex-1 space-y-1.5">
-            {categoryData.map((d, i) => (
-              <div key={i} className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full" style={{ background: d.color }} />
-                  <span className="text-muted-foreground">{d.name}</span>
+      {/* Paid vs Pending Pie */}
+      {statusData.length > 0 && (
+        <div className="glass-card p-4">
+          <h3 className="text-sm font-display font-semibold mb-3">Pagas vs Pendentes</h3>
+          <div className="flex items-center gap-4">
+            <ResponsiveContainer width={120} height={120}>
+              <PieChart>
+                <Pie data={statusData} dataKey="value" cx="50%" cy="50%" innerRadius={30} outerRadius={55} strokeWidth={0}>
+                  {statusData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                </Pie>
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="flex-1 space-y-2">
+              {statusData.map((d, i) => (
+                <div key={i} className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-2 h-2 rounded-full" style={{ background: d.color }} />
+                    <span className="text-muted-foreground">{d.name}</span>
+                  </div>
+                  <span className="font-medium">{formatCurrency(d.value)}</span>
                 </div>
-                <span className="font-medium">{formatCurrency(d.value)}</span>
+              ))}
+              <div className="text-xs text-muted-foreground pt-1 border-t border-border/50">
+                {totalPaid > 0 && total > 0 ? `${Math.round((totalPaid / total) * 100)}% pago` : ''}
               </div>
-            ))}
+            </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Category Pie Chart */}
+      {categoryData.length > 0 && (
+        <div className="glass-card p-4">
+          <h3 className="text-sm font-display font-semibold mb-3">Gastos por Categoria</h3>
+          <div className="flex items-center gap-4">
+            <ResponsiveContainer width={120} height={120}>
+              <PieChart>
+                <Pie data={categoryData} dataKey="value" cx="50%" cy="50%" innerRadius={30} outerRadius={55} strokeWidth={0}>
+                  {categoryData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                </Pie>
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="flex-1 space-y-1.5">
+              {categoryData.map((d, i) => (
+                <div key={i} className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-2 h-2 rounded-full" style={{ background: d.color }} />
+                    <span className="text-muted-foreground">{d.name}</span>
+                  </div>
+                  <span className="font-medium">{formatCurrency(d.value)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Monthly Bar Chart */}
-      <div className="glass-card p-4">
-        <h3 className="text-sm font-display font-semibold mb-3">Evolução Mensal</h3>
-        <ResponsiveContainer width="100%" height={160}>
-          <BarChart data={monthlyData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(240, 10%, 18%)" />
-            <XAxis dataKey="month" tick={{ fill: 'hsl(240, 5%, 55%)', fontSize: 11 }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fill: 'hsl(240, 5%, 55%)', fontSize: 10 }} axisLine={false} tickLine={false} width={40} />
-            <Tooltip
-              contentStyle={{ background: 'hsl(240, 12%, 10%)', border: '1px solid hsl(240, 10%, 18%)', borderRadius: 8, fontSize: 12 }}
-              labelStyle={{ color: 'hsl(0, 0%, 95%)' }}
-            />
-            <Bar dataKey="paid" fill="hsl(150, 60%, 45%)" radius={[4, 4, 0, 0]} name="Pago" />
-            <Bar dataKey="pending" fill="hsl(40, 90%, 55%)" radius={[4, 4, 0, 0]} name="Pendente" />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+      {monthlyData.length > 0 && (
+        <div className="glass-card p-4">
+          <h3 className="text-sm font-display font-semibold mb-3">Evolução Mensal</h3>
+          <ResponsiveContainer width="100%" height={160}>
+            <BarChart data={monthlyData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(240, 10%, 18%)" />
+              <XAxis dataKey="month" tick={{ fill: 'hsl(240, 5%, 55%)', fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: 'hsl(240, 5%, 55%)', fontSize: 10 }} axisLine={false} tickLine={false} width={40} />
+              <Tooltip contentStyle={{ background: 'hsl(240, 12%, 10%)', border: '1px solid hsl(240, 10%, 18%)', borderRadius: 8, fontSize: 12 }} labelStyle={{ color: 'hsl(0, 0%, 95%)' }} />
+              <Bar dataKey="paid" fill="hsl(150, 60%, 45%)" radius={[4, 4, 0, 0]} name="Pago" />
+              <Bar dataKey="pending" fill="hsl(40, 90%, 55%)" radius={[4, 4, 0, 0]} name="Pendente" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Line Chart - Evolution */}
+      {monthlyData.length > 1 && (
+        <div className="glass-card p-4">
+          <h3 className="text-sm font-display font-semibold mb-3">Tendência de Gastos</h3>
+          <ResponsiveContainer width="100%" height={160}>
+            <LineChart data={monthlyData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(240, 10%, 18%)" />
+              <XAxis dataKey="month" tick={{ fill: 'hsl(240, 5%, 55%)', fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: 'hsl(240, 5%, 55%)', fontSize: 10 }} axisLine={false} tickLine={false} width={40} />
+              <Tooltip contentStyle={{ background: 'hsl(240, 12%, 10%)', border: '1px solid hsl(240, 10%, 18%)', borderRadius: 8, fontSize: 12 }} labelStyle={{ color: 'hsl(0, 0%, 95%)' }} />
+              <Line type="monotone" dataKey="total" stroke="hsl(330, 80%, 55%)" strokeWidth={2} dot={{ fill: 'hsl(330, 80%, 55%)', r: 4 }} name="Total" />
+              <Line type="monotone" dataKey="paid" stroke="hsl(150, 60%, 45%)" strokeWidth={2} dot={{ fill: 'hsl(150, 60%, 45%)', r: 4 }} name="Pago" />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {bills.length === 0 && (
+        <div className="glass-card p-8 text-center">
+          <p className="text-muted-foreground text-sm">Adicione contas para visualizar os gráficos.</p>
+        </div>
+      )}
     </div>
   );
 };

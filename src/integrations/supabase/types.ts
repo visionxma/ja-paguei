@@ -111,10 +111,46 @@ export type Database = {
           },
         ]
       }
+      group_invites: {
+        Row: {
+          created_at: string
+          email: string
+          group_id: string
+          id: string
+          invited_by: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          group_id: string
+          id?: string
+          invited_by: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          group_id?: string
+          id?: string
+          invited_by?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_invites_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_members: {
         Row: {
           group_id: string
           id: string
+          invite_email: string | null
           joined_at: string
           role: string
           user_id: string
@@ -122,6 +158,7 @@ export type Database = {
         Insert: {
           group_id: string
           id?: string
+          invite_email?: string | null
           joined_at?: string
           role?: string
           user_id: string
@@ -129,6 +166,7 @@ export type Database = {
         Update: {
           group_id?: string
           id?: string
+          invite_email?: string | null
           joined_at?: string
           role?: string
           user_id?: string

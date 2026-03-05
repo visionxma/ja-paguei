@@ -1,0 +1,79 @@
+-- Fix: Drop all restrictive policies and recreate as permissive
+-- profiles
+DROP POLICY IF EXISTS "Users can view own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can insert own profile" ON public.profiles;
+CREATE POLICY "Users can view own profile" ON public.profiles FOR SELECT TO authenticated USING (auth.uid() = user_id);
+CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE TO authenticated USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own profile" ON public.profiles FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+
+-- Allow group members to view each other's profiles
+CREATE POLICY "Group members can view member profiles" ON public.profiles FOR SELECT TO authenticated
+  USING (EXISTS (
+    SELECT 1 FROM public.group_members gm1
+    JOIN public.group_members gm2 ON gm1.group_id = gm2.group_id
+    WHERE gm1.user_id = auth.uid() AND gm2.user_id = profiles.user_id
+  ));
+
+-- groups
+DROP POLICY IF EXISTS "Members can view group" ON public.groups;
+DROP POLICY IF EXISTS "Authenticated can create groups" ON public.groups;
+DROP POLICY IF EXISTS "Members can update group" ON public.groups;
+DROP POLICY IF EXISTS "Creator can delete group" ON public.groups;
+CREATE POLICY "Members can view group" ON public.groups FOR SELECT TO authenticated USING (public.is_group_member(id));
+CREATE POLICY "Authenticated can create groups" ON public.groups FOR INSERT TO authenticated WITH CHECK (auth.uid() = created_by);
+CREATE POLICY "Members can update group" ON public.groups FOR UPDATE TO authenticated USING (public.is_group_member(id));
+CREATE POLICY "Creator can delete group" ON public.groups FOR DELETE TO authenticated USING (auth.uid() = created_by);
+
+-- group_members
+DROP POLICY IF EXISTS "Members can view members" ON public.group_members;
+DROP POLICY IF EXISTS "Members can add members" ON public.group_members;
+DROP POLICY IF EXISTS "Members can remove themselves" ON public.group_members;
+CREATE POLICY "Members can view members" ON public.group_members FOR SELECT TO authenticated USING (public.is_group_member(group_id));
+CREATE POLICY "Members can add members" ON public.group_members FOR INSERT TO authenticated WITH CHECK (public.is_group_member(group_id));
+CREATE POLICY "Members can remove themselves" ON public.group_members FOR DELETE TO authenticated USING (auth.uid() = user_id);
+
+-- bills
+DROP POLICY IF EXISTS "Users can view own bills" ON public.bills;
+DROP POLICY IF EXISTS "Users can create bills" ON public.bills;
+DROP POLICY IF EXISTS "Users can update own bills" ON public.bills;
+DROP POLICY IF EXISTS "Users can delete own bills" ON public.bills;
+CREATE POLICY "Users can view own bills" ON public.bills FOR SELECT TO authenticated
+  USING ((group_id IS NULL AND auth.uid() = user_id) OR (group_id IS NOT NULL AND public.is_group_member(group_id)));
+CREATE POLICY "Users can create bills" ON public.bills FOR INSERT TO authenticated
+  WITH CHECK (auth.uid() = user_id AND (group_id IS NULL OR public.is_group_member(group_id)));
+CREATE POLICY "Users can update own bills" ON public.bills FOR UPDATE TO authenticated
+  USING ((group_id IS NULL AND auth.uid() = user_id) OR (group_id IS NOT NULL AND public.is_group_member(group_id)));
+CREATE POLICY "Users can delete own bills" ON public.bills FOR DELETE TO authenticated
+  USING ((group_id IS NULL AND auth.uid() = user_id) OR (group_id IS NOT NULL AND public.is_group_member(group_id)));
+
+-- bill_attachments
+DROP POLICY IF EXISTS "Users can view attachments of accessible bills" ON public.bill_attachments;
+DROP POLICY IF EXISTS "Users can upload attachments" ON public.bill_attachments;
+DROP POLICY IF EXISTS "Users can delete own attachments" ON public.bill_attachments;
+CREATE POLICY "Users can view attachments of accessible bills" ON public.bill_attachments FOR SELECT TO authenticated
+  USING (EXISTS (SELECT 1 FROM public.bills b WHERE b.id = bill_id AND ((b.group_id IS NULL AND auth.uid() = b.user_id) OR (b.group_id IS NOT NULL AND public.is_group_member(b.group_id)))));
+CREATE POLICY "Users can upload attachments" ON public.bill_attachments FOR INSERT TO authenticated
+  WITH CHECK (auth.uid() = uploaded_by);
+CREATE POLICY "Users can delete own attachments" ON public.bill_attachments FOR DELETE TO authenticated
+  USING (auth.uid() = uploaded_by);
+
+-- Add invite_email to group_members for tracking pending invites
+ALTER TABLE public.group_members ADD COLUMN IF NOT EXISTS invite_email TEXT;
+
+-- Create group_invites table for pending invites
+CREATE TABLE IF NOT EXISTS public.group_invites (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  group_id UUID NOT NULL REFERENCES public.groups(id) ON DELETE CASCADE,
+  email TEXT NOT NULL,
+  invited_by UUID NOT NULL REFERENCES auth.users(id),
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'declined')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE(group_id, email)
+);
+ALTER TABLE public.group_invites ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Members can view invites" ON public.group_invites FOR SELECT TO authenticated USING (public.is_group_member(group_id));
+CREATE POLICY "Members can create invites" ON public.group_invites FOR INSERT TO authenticated WITH CHECK (public.is_group_member(group_id));
+CREATE POLICY "Invited user can update" ON public.group_invites FOR UPDATE TO authenticated
+  USING (email = (SELECT email FROM auth.users WHERE id = auth.uid()));
+CREATE POLICY "Members can delete invites" ON public.group_invites FOR DELETE TO authenticated USING (public.is_group_member(group_id));
