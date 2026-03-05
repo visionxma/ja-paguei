@@ -1,0 +1,89 @@
+import { motion } from 'framer-motion';
+import { ArrowLeft, Moon, Sun, Monitor, DollarSign, Calendar } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { usePreferences } from '@/hooks/usePreferences';
+import { Skeleton } from '@/components/ui/skeleton';
+
+interface OptionCardProps {
+  icon: React.ReactNode;
+  label: string;
+  selected: boolean;
+  onClick: () => void;
+  disabled?: boolean;
+}
+
+const OptionCard = ({ icon, label, selected, onClick, disabled }: OptionCardProps) => (
+  <button
+    onClick={onClick}
+    disabled={disabled}
+    className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all text-xs font-medium flex-1 ${
+      selected
+        ? 'border-primary bg-primary/10 text-primary'
+        : 'border-border bg-card/50 text-muted-foreground hover:bg-card'
+    }`}
+  >
+    {icon}
+    {label}
+  </button>
+);
+
+const SettingsPage = () => {
+  const navigate = useNavigate();
+  const { preferences, isLoading, updatePreference, isSaving } = usePreferences();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background pb-24 px-4 pt-6 space-y-4">
+        <Skeleton className="h-8 w-40" />
+        <Skeleton className="h-36 w-full rounded-xl" />
+        <Skeleton className="h-36 w-full rounded-xl" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background pb-24">
+      <div className="px-4 pt-6 pb-4 flex items-center gap-3">
+        <button onClick={() => navigate('/profile')} className="p-1.5 rounded-lg hover:bg-card transition-colors">
+          <ArrowLeft size={20} />
+        </button>
+        <motion.h1 initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="text-2xl font-display font-bold">
+          Configurações
+        </motion.h1>
+      </div>
+
+      <div className="px-4 space-y-4">
+        {/* Theme */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-4">
+          <h2 className="text-sm font-display font-semibold mb-3">Tema</h2>
+          <div className="flex gap-2">
+            <OptionCard icon={<Moon size={18} />} label="Escuro" selected={preferences.theme === 'dark'} onClick={() => updatePreference({ theme: 'dark' })} disabled={isSaving} />
+            <OptionCard icon={<Sun size={18} />} label="Claro" selected={preferences.theme === 'light'} onClick={() => updatePreference({ theme: 'light' })} disabled={isSaving} />
+            <OptionCard icon={<Monitor size={18} />} label="Sistema" selected={preferences.theme === 'system'} onClick={() => updatePreference({ theme: 'system' })} disabled={isSaving} />
+          </div>
+        </motion.div>
+
+        {/* Currency */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="glass-card p-4">
+          <h2 className="text-sm font-display font-semibold mb-3">Moeda</h2>
+          <div className="flex gap-2">
+            <OptionCard icon={<DollarSign size={18} />} label="R$ (BRL)" selected={preferences.currency === 'BRL'} onClick={() => updatePreference({ currency: 'BRL' })} disabled={isSaving} />
+            <OptionCard icon={<DollarSign size={18} />} label="$ (USD)" selected={preferences.currency === 'USD'} onClick={() => updatePreference({ currency: 'USD' })} disabled={isSaving} />
+            <OptionCard icon={<DollarSign size={18} />} label="€ (EUR)" selected={preferences.currency === 'EUR'} onClick={() => updatePreference({ currency: 'EUR' })} disabled={isSaving} />
+          </div>
+        </motion.div>
+
+        {/* Date format */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass-card p-4">
+          <h2 className="text-sm font-display font-semibold mb-3">Formato de data</h2>
+          <div className="flex gap-2">
+            <OptionCard icon={<Calendar size={18} />} label="DD/MM/AAAA" selected={preferences.date_format === 'DD/MM/YYYY'} onClick={() => updatePreference({ date_format: 'DD/MM/YYYY' })} disabled={isSaving} />
+            <OptionCard icon={<Calendar size={18} />} label="MM/DD/AAAA" selected={preferences.date_format === 'MM/DD/YYYY'} onClick={() => updatePreference({ date_format: 'MM/DD/YYYY' })} disabled={isSaving} />
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
+};
+
+export default SettingsPage;
