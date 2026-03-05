@@ -138,9 +138,9 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
         </DialogHeader>
 
         <div className="space-y-4 mt-2">
-          {/* Descrição */}
+          {/* 1. Nome da conta */}
           <div>
-            <Label className="text-xs text-muted-foreground mb-1.5 block">Descrição</Label>
+            <Label className="text-xs text-muted-foreground mb-1.5 block">Nome da conta</Label>
             <Input
               placeholder="Ex: Conta de luz - Janeiro"
               value={description}
@@ -149,7 +149,7 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
             />
           </div>
 
-          {/* Valor com máscara monetária */}
+          {/* 2. Valor com máscara monetária */}
           <div>
             <Label className="text-xs text-muted-foreground mb-1.5 block">Valor</Label>
             <div className="relative">
@@ -165,35 +165,7 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
             </div>
           </div>
 
-          {/* Data de Início */}
-          <div>
-            <Label className="text-xs text-muted-foreground mb-1.5 block">Data de início (opcional)</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal bg-secondary border-border",
-                    !startDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {startDate ? format(startDate, "dd/MM/yyyy") : "Selecionar data"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 z-[60]" align="start">
-                <Calendar
-                  mode="single"
-                  selected={startDate}
-                  onSelect={setStartDate}
-                  initialFocus
-                  className="p-3 pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          {/* Data de Vencimento */}
+          {/* 3. Data de Vencimento */}
           <div>
             <Label className="text-xs text-muted-foreground mb-1.5 block">Data de vencimento (opcional)</Label>
             <Popover>
@@ -221,7 +193,19 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
             </Popover>
           </div>
 
-          {/* Categoria */}
+          {/* 4. Descrição / Observações */}
+          <div>
+            <Label className="text-xs text-muted-foreground mb-1.5 block">Descrição (opcional)</Label>
+            <Textarea
+              placeholder="Notas adicionais sobre esta conta..."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="bg-secondary border-border text-foreground placeholder:text-muted-foreground resize-none"
+              rows={3}
+            />
+          </div>
+
+          {/* 5. Categoria */}
           <div>
             <Label className="text-xs text-muted-foreground mb-1.5 block">Categoria</Label>
             <div className="flex flex-wrap gap-2">
@@ -241,7 +225,7 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
             </div>
           </div>
 
-          {/* Recorrência */}
+          {/* 6. Recorrência */}
           <div>
             <Label className="text-xs text-muted-foreground mb-1.5 block">Tipo de conta</Label>
             <div className="grid grid-cols-3 gap-2">
@@ -262,7 +246,35 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
             </div>
           </div>
 
-          {/* Responsável (apenas em grupo) */}
+          {/* Data de Início (colapsado) */}
+          <div>
+            <Label className="text-xs text-muted-foreground mb-1.5 block">Data de início (opcional)</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal bg-secondary border-border",
+                    !startDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {startDate ? format(startDate, "dd/MM/yyyy") : "Selecionar data"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 z-[60]" align="start">
+                <Calendar
+                  mode="single"
+                  selected={startDate}
+                  onSelect={setStartDate}
+                  initialFocus
+                  className="p-3 pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* 7. Responsável + Divisão (apenas em grupo) */}
           {isGroup && members && members.length > 0 && (
             <div>
               <Label className="text-xs text-muted-foreground mb-1.5 block">Responsável</Label>
@@ -281,7 +293,6 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
             </div>
           )}
 
-          {/* Divisão de despesa (apenas em grupo) */}
           {isGroup && members && members.length > 0 && (
             <BillSplitSection
               totalAmount={parseCurrencyToNumber(amountDisplay)}
@@ -291,19 +302,7 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
             />
           )}
 
-          {/* Observações */}
-          <div>
-            <Label className="text-xs text-muted-foreground mb-1.5 block">Observações (opcional)</Label>
-            <Textarea
-              placeholder="Notas adicionais sobre esta conta..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="bg-secondary border-border text-foreground placeholder:text-muted-foreground resize-none"
-              rows={2}
-            />
-          </div>
-
-          {/* Anexos (somente ao editar) */}
+          {/* 8. Anexos (somente ao editar) */}
           {isEditing && onOpenAttachments && (
             <button
               onClick={() => { onOpenAttachments(editBill.id); }}
