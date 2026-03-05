@@ -4,7 +4,7 @@ import { ArrowLeft, Plus, UserPlus, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
-import { fetchGroupDetail, fetchGroupMembers, fetchGroupBills, createBill, updateBill, updateBillStatus, deleteBill, saveBillSplits, fetchBillSplits } from '@/lib/api';
+import { fetchGroupDetail, fetchGroupMembers, fetchGroupBills, createBill, updateBill, updateBillStatus, deleteBill, saveBillSplits, fetchBillSplits, uploadAttachment } from '@/lib/api';
 import BillCard from '@/components/BillCard';
 import FinanceCharts from '@/components/FinanceCharts';
 import AddBillDialog from '@/components/AddBillDialog';
@@ -121,7 +121,7 @@ const GroupDetail = () => {
     }
   };
 
-  const addBill = async (bill: Omit<Bill, 'id' | 'createdAt'>, splits?: SplitEntry[]) => {
+  const addBill = async (bill: Omit<Bill, 'id' | 'createdAt'>, splits?: SplitEntry[], pendingFiles?: File[]) => {
     if (!user || !id) return;
     try {
       const created = await createMutation.mutateAsync({
@@ -139,6 +139,16 @@ const GroupDetail = () => {
       });
       if (splits && splits.length > 0 && created?.id) {
         await saveBillSplits(created.id, splits);
+      }
+      if (pendingFiles && pendingFiles.length > 0 && created?.id) {
+        for (const file of pendingFiles) {
+          try {
+            await uploadAttachment(created.id, user.id, file);
+          } catch (err) {
+            console.error('[GroupDetail] Error uploading attachment:', err);
+          }
+        }
+        toast.success(`${pendingFiles.length} anexo(s) enviado(s)!`);
       }
     } catch (err) {
       console.error('[GroupDetail] Error creating bill:', err);

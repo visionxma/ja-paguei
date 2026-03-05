@@ -1,7 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { CalendarIcon, Paperclip } from 'lucide-react';
+import { CalendarIcon, Paperclip, Upload, Camera, X, FileText, Image as ImageIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,7 +15,7 @@ import BillSplitSection, { SplitEntry } from '@/components/BillSplitSection';
 interface AddBillDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAdd: (bill: Omit<Bill, 'id' | 'createdAt'>, splits?: SplitEntry[]) => void;
+  onAdd: (bill: Omit<Bill, 'id' | 'createdAt'>, splits?: SplitEntry[], pendingFiles?: File[]) => void;
   isGroup?: boolean;
   members?: { user_id: string; profiles: { display_name: string | null } | null }[];
   editBill?: any;
@@ -32,7 +31,6 @@ const recurrenceOptions: { value: BillRecurrence; label: string; desc: string }[
   { value: 'anual', label: 'Anual', desc: 'Uma vez por ano' },
 ];
 
-// Currency formatting helpers
 const formatCurrencyInput = (value: string): string => {
   const digits = value.replace(/\D/g, '');
   if (!digits) return '';
@@ -57,6 +55,9 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
   const [notes, setNotes] = useState('');
   const [responsibleId, setResponsibleId] = useState('');
   const [splits, setSplits] = useState<SplitEntry[]>(existingSplits || []);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const isEditing = !!editBill;
 
   useEffect(() => {
@@ -88,11 +89,36 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
     setNotes('');
     setResponsibleId('');
     setSplits([]);
+    setPendingFiles([]);
   };
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
     setAmountDisplay(formatCurrencyInput(raw));
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      setPendingFiles(prev => [...prev, ...Array.from(files)]);
+    }
+    e.target.value = '';
+  };
+
+  const removePendingFile = (index: number) => {
+    setPendingFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const getFileIcon = (file: File) => {
+    if (file.type.startsWith('image/')) return <ImageIcon size={14} className="text-primary shrink-0" />;
+    return <FileText size={14} className="text-primary shrink-0" />;
+  };
+
+  const getFilePreview = (file: File) => {
+    if (file.type.startsWith('image/')) {
+      return URL.createObjectURL(file);
+    }
+    return null;
   };
 
   const handleSubmit = () => {
@@ -123,7 +149,7 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
         recurrence,
         notes,
         responsibleId: responsibleId || undefined,
-      }, splits);
+      }, splits, pendingFiles.length > 0 ? pendingFiles : undefined);
     }
     resetForm();
     onOpenChange(false);
@@ -138,7 +164,7 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
         </DialogHeader>
 
         <div className="space-y-4 mt-2">
-          {/* 1. Nome da conta */}
+          {/* Nome da conta */}
           <div>
             <Label className="text-xs text-muted-foreground mb-1.5 block">Nome da conta</Label>
             <Input
@@ -149,7 +175,7 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
             />
           </div>
 
-          {/* 2. Valor com máscara monetária */}
+          {/* Valor */}
           <div>
             <Label className="text-xs text-muted-foreground mb-1.5 block">Valor</Label>
             <div className="relative">
@@ -165,35 +191,26 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
             </div>
           </div>
 
-          {/* 3. Data de Vencimento */}
+          {/* Data de Vencimento */}
           <div>
             <Label className="text-xs text-muted-foreground mb-1.5 block">Data de vencimento (opcional)</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal bg-secondary border-border",
-                    !dueDate && "text-muted-foreground"
-                  )}
+                  className={cn("w-full justify-start text-left font-normal bg-secondary border-border", !dueDate && "text-muted-foreground")}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {dueDate ? format(dueDate, "dd/MM/yyyy") : "Selecionar data"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0 z-[60]" align="start">
-                <Calendar
-                  mode="single"
-                  selected={dueDate}
-                  onSelect={setDueDate}
-                  initialFocus
-                  className="p-3 pointer-events-auto"
-                />
+                <Calendar mode="single" selected={dueDate} onSelect={setDueDate} initialFocus className="p-3 pointer-events-auto" />
               </PopoverContent>
             </Popover>
           </div>
 
-          {/* 4. Descrição / Observações */}
+          {/* Descrição */}
           <div>
             <Label className="text-xs text-muted-foreground mb-1.5 block">Descrição (opcional)</Label>
             <Textarea
@@ -205,7 +222,7 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
             />
           </div>
 
-          {/* 5. Categoria */}
+          {/* Categoria */}
           <div>
             <Label className="text-xs text-muted-foreground mb-1.5 block">Categoria</Label>
             <div className="flex flex-wrap gap-2">
@@ -225,7 +242,7 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
             </div>
           </div>
 
-          {/* 6. Recorrência */}
+          {/* Recorrência */}
           <div>
             <Label className="text-xs text-muted-foreground mb-1.5 block">Tipo de conta</Label>
             <div className="grid grid-cols-3 gap-2">
@@ -246,35 +263,26 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
             </div>
           </div>
 
-          {/* Data de Início (colapsado) */}
+          {/* Data de Início */}
           <div>
             <Label className="text-xs text-muted-foreground mb-1.5 block">Data de início (opcional)</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal bg-secondary border-border",
-                    !startDate && "text-muted-foreground"
-                  )}
+                  className={cn("w-full justify-start text-left font-normal bg-secondary border-border", !startDate && "text-muted-foreground")}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {startDate ? format(startDate, "dd/MM/yyyy") : "Selecionar data"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0 z-[60]" align="start">
-                <Calendar
-                  mode="single"
-                  selected={startDate}
-                  onSelect={setStartDate}
-                  initialFocus
-                  className="p-3 pointer-events-auto"
-                />
+                <Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus className="p-3 pointer-events-auto" />
               </PopoverContent>
             </Popover>
           </div>
 
-          {/* 7. Responsável + Divisão (apenas em grupo) */}
+          {/* Responsável + Divisão (grupo) */}
           {isGroup && members && members.length > 0 && (
             <div>
               <Label className="text-xs text-muted-foreground mb-1.5 block">Responsável</Label>
@@ -302,16 +310,87 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
             />
           )}
 
-          {/* 8. Anexos (somente ao editar) */}
-          {isEditing && onOpenAttachments && (
-            <button
-              onClick={() => { onOpenAttachments(editBill.id); }}
-              className="w-full glass-card p-3 flex items-center justify-center gap-2 text-primary text-sm font-medium hover:bg-primary/10 transition-colors"
-            >
-              <Paperclip size={16} />
-              Gerenciar Anexos
-            </button>
-          )}
+          {/* Anexos */}
+          <div>
+            <Label className="text-xs text-muted-foreground mb-1.5 block flex items-center gap-1.5">
+              <Paperclip size={12} /> Anexos
+            </Label>
+
+            {/* Upload buttons */}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="flex-1 glass-card p-2.5 flex items-center justify-center gap-2 text-primary text-xs font-medium hover:bg-primary/10 transition-colors"
+              >
+                <Upload size={14} /> Arquivo
+              </button>
+              <button
+                type="button"
+                onClick={() => cameraInputRef.current?.click()}
+                className="flex-1 glass-card p-2.5 flex items-center justify-center gap-2 text-primary text-xs font-medium hover:bg-primary/10 transition-colors"
+              >
+                <Camera size={14} /> Câmera
+              </button>
+              {isEditing && onOpenAttachments && (
+                <button
+                  type="button"
+                  onClick={() => onOpenAttachments(editBill.id)}
+                  className="flex-1 glass-card p-2.5 flex items-center justify-center gap-2 text-primary text-xs font-medium hover:bg-primary/10 transition-colors"
+                >
+                  <Paperclip size={14} /> Ver todos
+                </button>
+              )}
+            </div>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,.pdf,.doc,.docx"
+              multiple
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+
+            {/* Pending files preview */}
+            {pendingFiles.length > 0 && (
+              <div className="mt-2 space-y-1.5">
+                {pendingFiles.map((file, i) => {
+                  const preview = getFilePreview(file);
+                  return (
+                    <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-secondary/50 border border-border/50">
+                      {preview ? (
+                        <img src={preview} alt="" className="w-8 h-8 rounded object-cover shrink-0" />
+                      ) : (
+                        <div className="w-8 h-8 rounded bg-secondary flex items-center justify-center shrink-0">
+                          {getFileIcon(file)}
+                        </div>
+                      )}
+                      <span className="text-xs text-foreground truncate flex-1">{file.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => removePendingFile(i)}
+                        className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors shrink-0"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  );
+                })}
+                <p className="text-[10px] text-muted-foreground">
+                  {pendingFiles.length} arquivo(s) será(ão) enviado(s) ao criar a conta.
+                </p>
+              </div>
+            )}
+          </div>
 
           <button
             onClick={handleSubmit}

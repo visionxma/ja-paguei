@@ -9,7 +9,7 @@ import AttachmentsDialog from '@/components/AttachmentsDialog';
 import SearchFilterBar from '@/components/SearchFilterBar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFormat } from '@/contexts/FormatContext';
-import { fetchPersonalBills, createBill, updateBill, updateBillStatus, deleteBill } from '@/lib/api';
+import { fetchPersonalBills, createBill, updateBill, updateBillStatus, deleteBill, uploadAttachment } from '@/lib/api';
 import { Bill } from '@/types/finance';
 import { toast } from 'sonner';
 import {
@@ -94,19 +94,33 @@ const Dashboard = () => {
     editMutation.mutate({ id, updates });
   };
 
-  const addBill = (bill: Omit<Bill, 'id' | 'createdAt'>) => {
+  const addBill = async (bill: Omit<Bill, 'id' | 'createdAt'>, _splits?: any, pendingFiles?: File[]) => {
     if (!user) return;
-    createMutation.mutate({
-      user_id: user.id,
-      description: bill.description,
-      amount: bill.amount,
-      start_date: bill.startDate || null,
-      due_date: bill.dueDate || null,
-      category: bill.category,
-      status: bill.status,
-      recurrence: bill.recurrence,
-      notes: bill.notes || null,
-    });
+    try {
+      const created = await createMutation.mutateAsync({
+        user_id: user.id,
+        description: bill.description,
+        amount: bill.amount,
+        start_date: bill.startDate || null,
+        due_date: bill.dueDate || null,
+        category: bill.category,
+        status: bill.status,
+        recurrence: bill.recurrence,
+        notes: bill.notes || null,
+      });
+      if (pendingFiles && pendingFiles.length > 0 && created?.id) {
+        for (const file of pendingFiles) {
+          try {
+            await uploadAttachment(created.id, user.id, file);
+          } catch (err) {
+            console.error('[Dashboard] Error uploading attachment:', err);
+          }
+        }
+        toast.success(`${pendingFiles.length} anexo(s) enviado(s)!`);
+      }
+    } catch (err) {
+      console.error('[Dashboard] Error creating bill:', err);
+    }
   };
 
   // Filter bills
