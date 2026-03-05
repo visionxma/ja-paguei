@@ -113,27 +113,35 @@ const GroupDetail = () => {
     setShowAddBill(true);
   };
   const handleEditSubmit = async (billId: string, updates: any, splits?: SplitEntry[]) => {
-    await editMutation.mutateAsync({ billId, updates });
-    if (splits) await saveBillSplits(billId, splits);
+    try {
+      await editMutation.mutateAsync({ billId, updates });
+      if (splits) await saveBillSplits(billId, splits);
+    } catch (err) {
+      console.error('[GroupDetail] Error editing bill:', err);
+    }
   };
 
   const addBill = async (bill: Omit<Bill, 'id' | 'createdAt'>, splits?: SplitEntry[]) => {
     if (!user || !id) return;
-    const created = await createMutation.mutateAsync({
-      user_id: user.id,
-      group_id: id,
-      description: bill.description,
-      amount: bill.amount,
-      start_date: bill.startDate || null,
-      due_date: bill.dueDate || null,
-      category: bill.category,
-      status: bill.status,
-      recurrence: bill.recurrence,
-      notes: bill.notes || null,
-      responsible_id: bill.responsibleId || null,
-    });
-    if (splits && splits.length > 0 && created?.id) {
-      await saveBillSplits(created.id, splits);
+    try {
+      const created = await createMutation.mutateAsync({
+        user_id: user.id,
+        group_id: id,
+        description: bill.description,
+        amount: bill.amount,
+        start_date: bill.startDate || null,
+        due_date: bill.dueDate || null,
+        category: bill.category,
+        status: bill.status,
+        recurrence: bill.recurrence,
+        notes: bill.notes || null,
+        responsible_id: bill.responsibleId || null,
+      });
+      if (splits && splits.length > 0 && created?.id) {
+        await saveBillSplits(created.id, splits);
+      }
+    } catch (err) {
+      console.error('[GroupDetail] Error creating bill:', err);
     }
   };
 

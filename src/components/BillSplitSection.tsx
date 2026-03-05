@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Users, Percent, DollarSign, Scale, Home, Divide } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -35,6 +35,9 @@ const getMemberName = (m: Member) =>
   (m.profiles as any)?.display_name || 'Membro';
 
 const BillSplitSection = ({ totalAmount, members, splits, onSplitsChange }: BillSplitSectionProps) => {
+  const onSplitsChangeRef = useRef(onSplitsChange);
+  onSplitsChangeRef.current = onSplitsChange;
+
   const [splitMode, setSplitMode] = useState<SplitMode>(splits.length > 0 ? 'manual' : 'none');
   const [manualType, setManualType] = useState<ManualType>('percentage');
   const [autoType, setAutoType] = useState<AutoType>('equal');
@@ -124,8 +127,8 @@ const BillSplitSection = ({ totalAmount, members, splits, onSplitsChange }: Bill
   // Push computed splits upstream
   useEffect(() => {
     const computed = computeSplits();
-    onSplitsChange(computed);
-  }, [splitMode, manualType, autoType, selectedUserIds, totalAmount, percentages, values, weights]);
+    onSplitsChangeRef.current(computed);
+  }, [splitMode, manualType, autoType, selectedUserIds, totalAmount, percentages, values, weights, computeSplits]);
 
   // Validation
   const validation = useMemo(() => {
