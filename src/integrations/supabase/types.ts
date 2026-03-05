@@ -152,6 +152,30 @@ export type Database = {
           },
         ]
       }
+      friends: {
+        Row: {
+          created_at: string
+          id: string
+          receiver_id: string
+          requester_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          receiver_id: string
+          requester_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          receiver_id?: string
+          requester_id?: string
+          status?: string
+        }
+        Relationships: []
+      }
       group_invites: {
         Row: {
           created_at: string
@@ -338,6 +362,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      is_friend_participant: {
+        Args: {
+          _friend_row_receiver: string
+          _friend_row_requester: string
+          _user_id: string
+        }
+        Returns: boolean
+      }
       is_group_member: { Args: { _group_id: string }; Returns: boolean }
     }
     Enums: {

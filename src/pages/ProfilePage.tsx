@@ -1,14 +1,18 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { User, Settings, LogOut, Bell, Shield, Edit2 } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { formatUserName } from '@/lib/utils';
 import ShareAppSection from '@/components/ShareAppSection';
 import EditProfileDialog from '@/components/EditProfileDialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+const APP_URL = 'https://ja-paguei.lovable.app';
 
 const ProfilePage = () => {
-  const { profile, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const [showEditProfile, setShowEditProfile] = useState(false);
 
@@ -16,6 +20,8 @@ const ProfilePage = () => {
     await signOut();
     navigate('/login');
   };
+
+  const friendQRValue = user ? `${APP_URL}/add-friend?user=${user.id}` : '';
 
   const menuItems = [
     { icon: Bell, label: 'Notificações', desc: 'Alertas de vencimento', path: '/notifications' },
@@ -54,9 +60,32 @@ const ProfilePage = () => {
           </button>
         </motion.div>
 
+        {/* QR Codes Section */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="mb-6">
+          <Tabs defaultValue="friend" className="glass-card p-4">
+            <TabsList className="w-full mb-3">
+              <TabsTrigger value="friend" className="flex-1 text-xs">QR de Amizade</TabsTrigger>
+              <TabsTrigger value="app" className="flex-1 text-xs">QR do App</TabsTrigger>
+            </TabsList>
+            <TabsContent value="friend" className="space-y-3">
+              <div className="flex justify-center py-2">
+                <div className="bg-white p-3 rounded-xl">
+                  <QRCodeSVG value={friendQRValue} size={160} level="H" />
+                </div>
+              </div>
+              <p className="text-xs text-center text-muted-foreground">
+                Peça para um amigo escanear este QR Code para te adicionar
+              </p>
+            </TabsContent>
+            <TabsContent value="app">
+              <ShareAppSection />
+            </TabsContent>
+          </Tabs>
+        </motion.div>
+
         <div className="space-y-2">
           {menuItems.map((item, i) => (
-            <motion.button key={item.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} onClick={() => navigate(item.path)} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-card/90 transition-colors">
+            <motion.button key={item.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 + 0.1 }} onClick={() => navigate(item.path)} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-card/90 transition-colors">
               <item.icon size={18} className="text-muted-foreground" />
               <div>
                 <p className="text-sm font-medium">{item.label}</p>
@@ -65,14 +94,10 @@ const ProfilePage = () => {
             </motion.button>
           ))}
 
-          <motion.button initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} onClick={handleSignOut} className="w-full glass-card p-4 flex items-center gap-3 text-left text-destructive hover:bg-destructive/10 transition-colors mt-4">
+          <motion.button initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} onClick={handleSignOut} className="w-full glass-card p-4 flex items-center gap-3 text-left text-destructive hover:bg-destructive/10 transition-colors mt-4">
             <LogOut size={18} />
             <p className="text-sm font-medium">Sair da conta</p>
           </motion.button>
-        </div>
-
-        <div className="mt-6">
-          <ShareAppSection />
         </div>
       </div>
 

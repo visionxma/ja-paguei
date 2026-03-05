@@ -1,9 +1,10 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, Users, Clock, User } from 'lucide-react';
+import { Home, Users, UserCheck, Clock, User } from 'lucide-react';
 
 const navItems = [
   { to: '/', icon: Home, label: 'Início' },
   { to: '/groups', icon: Users, label: 'Grupos' },
+  { to: '/friends', icon: UserCheck, label: 'Amigos' },
   { to: '/history', icon: Clock, label: 'Histórico' },
   { to: '/profile', icon: User, label: 'Perfil' },
 ];
@@ -20,15 +21,15 @@ const BottomNav = () => {
             <NavLink
               key={to}
               to={to}
-              className="flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl transition-colors"
+              className="flex flex-col items-center justify-center gap-0.5 py-1 px-2 rounded-xl transition-colors"
             >
               <div className={`p-1.5 rounded-xl transition-all ${isActive ? 'bg-primary/20' : ''}`}>
                 <Icon
-                  size={20}
+                  size={18}
                   className={isActive ? 'text-primary' : 'text-muted-foreground'}
                 />
               </div>
-              <span className={`text-[10px] font-medium ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
+              <span className={`text-[9px] font-medium ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
                 {label}
               </span>
             </NavLink>
