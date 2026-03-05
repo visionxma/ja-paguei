@@ -1,46 +1,20 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { User, Settings, LogOut, Bell, Shield, Edit2, RefreshCw } from 'lucide-react';
+import { User, Settings, LogOut, Bell, Shield, Edit2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { formatUserName } from '@/lib/utils';
-import { lovable } from '@/integrations/lovable';
 import ShareAppSection from '@/components/ShareAppSection';
 import EditProfileDialog from '@/components/EditProfileDialog';
-import { toast } from 'sonner';
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
-} from '@/components/ui/alert-dialog';
 
 const ProfilePage = () => {
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
   const [showEditProfile, setShowEditProfile] = useState(false);
-  const [showSwitchConfirm, setShowSwitchConfirm] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/login');
-  };
-
-  const handleSwitchAccount = async () => {
-    setShowSwitchConfirm(false);
-    try {
-      await signOut();
-      await lovable.auth.signInWithOAuth('google', {
-        redirect_uri: window.location.origin,
-        extraParams: { prompt: 'select_account' },
-      });
-    } catch {
-      toast.error('Erro ao trocar de conta');
-    }
   };
 
   const menuItems = [
@@ -70,14 +44,6 @@ const ProfilePage = () => {
             <p className="font-display font-semibold">{formatUserName(profile?.display_name) || 'Usuário'}</p>
             <p className="text-sm text-muted-foreground truncate">{profile?.email}</p>
           </div>
-          <button
-            onClick={() => setShowSwitchConfirm(true)}
-            className="p-2 rounded-lg hover:bg-primary/10 transition-colors text-muted-foreground"
-            aria-label="Trocar conta Google"
-            title="Trocar conta Google"
-          >
-            <RefreshCw size={16} />
-          </button>
           <button
             onClick={() => setShowEditProfile(true)}
             className="p-2 rounded-lg hover:bg-primary/10 transition-colors text-primary"
@@ -111,23 +77,6 @@ const ProfilePage = () => {
       </div>
 
       <EditProfileDialog open={showEditProfile} onOpenChange={setShowEditProfile} />
-
-      <AlertDialog open={showSwitchConfirm} onOpenChange={setShowSwitchConfirm}>
-        <AlertDialogContent className="bg-card border-border text-foreground max-w-sm mx-auto">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="font-display">Trocar conta</AlertDialogTitle>
-            <AlertDialogDescription className="text-muted-foreground">
-              Você será desconectado da conta atual e redirecionado para escolher outra conta Google. Deseja continuar?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex gap-2">
-            <AlertDialogCancel className="flex-1">Voltar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleSwitchAccount} className="flex-1">
-              Trocar conta
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };
