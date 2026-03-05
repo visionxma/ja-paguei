@@ -244,6 +244,7 @@ const Dashboard = () => {
         onAdd={addBill}
         editBill={editBill}
         onEdit={handleEditSubmit}
+        onOpenAttachments={setAttachBillId}
       />
 
       {attachBillId && (
