@@ -13,32 +13,21 @@ interface EditProfileDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 const EditProfileDialog = ({ open, onOpenChange }: EditProfileDialogProps) => {
   const { user, profile, refreshProfile } = useAuth();
   const [displayName, setDisplayName] = useState('');
-  const [newEmail, setNewEmail] = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (open) {
       setDisplayName(profile?.display_name || '');
-      setNewEmail(profile?.email || '');
     }
   }, [open, profile]);
 
-  const hasNameChanged = formatUserName(displayName) !== formatUserName(profile?.display_name);
-  const hasEmailChanged = newEmail.trim().toLowerCase() !== (profile?.email || '').toLowerCase();
-  const hasChanges = hasNameChanged || hasEmailChanged;
+  const hasChanged = formatUserName(displayName) !== formatUserName(profile?.display_name);
 
   const handleSave = async () => {
     if (!user) return;
-
-    if (hasEmailChanged && !emailRegex.test(newEmail.trim())) {
-      toast.error('Digite um e-mail válido');
-      return;
-    }
 
     if (!displayName.trim()) {
       toast.error('O nome não pode ficar vazio');
@@ -47,34 +36,18 @@ const EditProfileDialog = ({ open, onOpenChange }: EditProfileDialogProps) => {
 
     setSaving(true);
     try {
-      // Update display name in profiles table
-      if (hasNameChanged) {
-        const formatted = formatUserName(displayName);
-        const { error } = await supabase
-          .from('profiles')
-          .update({ display_name: formatted })
-          .eq('user_id', user.id);
-        if (error) throw error;
-      }
+      const formatted = formatUserName(displayName);
+      const { error } = await supabase
+        .from('profiles')
+        .update({ display_name: formatted })
+        .eq('user_id', user.id);
+      if (error) throw error;
 
-      // Update email via auth
-      if (hasEmailChanged) {
-        const { error } = await supabase.auth.updateUser({ email: newEmail.trim().toLowerCase() });
-        if (error) throw error;
-        toast.success('Um e-mail de confirmação foi enviado para o novo endereço');
-      }
-
-      if (hasNameChanged && !hasEmailChanged) {
-        toast.success('Perfil atualizado com sucesso');
-      }
-
-      if (hasNameChanged) {
-        await refreshProfile();
-      }
-
+      toast.success('Nome atualizado com sucesso');
+      await refreshProfile();
       onOpenChange(false);
     } catch (err: any) {
-      toast.error(err.message || 'Erro ao atualizar perfil');
+      toast.error(err.message || 'Erro ao atualizar nome');
     } finally {
       setSaving(false);
     }
@@ -84,12 +57,12 @@ const EditProfileDialog = ({ open, onOpenChange }: EditProfileDialogProps) => {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-card border-border text-foreground max-w-sm mx-auto">
         <DialogHeader>
-          <DialogTitle className="font-display">Editar Perfil</DialogTitle>
+          <DialogTitle className="font-display">Editar Nome</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 mt-2">
           <div>
-            <Label className="text-xs text-muted-foreground mb-1.5 block">Nome</Label>
+            <Label className="text-xs text-muted-foreground mb-1.5 block">Nome de exibição</Label>
             <Input
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
@@ -103,31 +76,12 @@ const EditProfileDialog = ({ open, onOpenChange }: EditProfileDialogProps) => {
             )}
           </div>
 
-          <div>
-            <Label className="text-xs text-muted-foreground mb-1.5 block">E-mail</Label>
-            <Input
-              type="email"
-              value={newEmail}
-              onChange={(e) => setNewEmail(e.target.value)}
-              placeholder="seu@email.com"
-              className="bg-secondary border-border text-foreground"
-            />
-            {hasEmailChanged && newEmail.trim() && !emailRegex.test(newEmail.trim()) && (
-              <p className="text-xs text-destructive mt-1">E-mail inválido</p>
-            )}
-            {hasEmailChanged && emailRegex.test(newEmail.trim()) && (
-              <p className="text-xs text-muted-foreground mt-1">
-                Um e-mail de confirmação será enviado para o novo endereço.
-              </p>
-            )}
-          </div>
-
           <Button
             onClick={handleSave}
-            disabled={saving || !hasChanges}
+            disabled={saving || !hasChanged}
             className="w-full"
           >
-            {saving ? 'Salvando...' : 'Salvar alterações'}
+            {saving ? 'Salvando...' : 'Salvar'}
           </Button>
         </div>
       </DialogContent>
