@@ -1,12 +1,16 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { User, Settings, LogOut, Bell, Shield } from 'lucide-react';
+import { User, Settings, LogOut, Bell, Shield, Edit2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { formatUserName } from '@/lib/utils';
 import ShareAppSection from '@/components/ShareAppSection';
+import EditProfileDialog from '@/components/EditProfileDialog';
 
 const ProfilePage = () => {
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
+  const [showEditProfile, setShowEditProfile] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -28,7 +32,7 @@ const ProfilePage = () => {
       </div>
 
       <div className="px-4">
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-5 flex items-center gap-4 mb-6">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-5 flex items-center gap-4 mb-6 relative">
           {profile?.avatar_url ? (
             <img src={profile.avatar_url} alt="" className="w-14 h-14 rounded-full object-cover" />
           ) : (
@@ -36,10 +40,17 @@ const ProfilePage = () => {
               <User size={24} className="text-primary-foreground" />
             </div>
           )}
-          <div>
-            <p className="font-display font-semibold">{profile?.display_name || 'Usuário'}</p>
-            <p className="text-sm text-muted-foreground">{profile?.email}</p>
+          <div className="flex-1 min-w-0">
+            <p className="font-display font-semibold">{formatUserName(profile?.display_name) || 'Usuário'}</p>
+            <p className="text-sm text-muted-foreground truncate">{profile?.email}</p>
           </div>
+          <button
+            onClick={() => setShowEditProfile(true)}
+            className="p-2 rounded-lg hover:bg-primary/10 transition-colors text-primary"
+            aria-label="Editar perfil"
+          >
+            <Edit2 size={16} />
+          </button>
         </motion.div>
 
         <div className="space-y-2">
@@ -63,6 +74,8 @@ const ProfilePage = () => {
           <ShareAppSection />
         </div>
       </div>
+
+      <EditProfileDialog open={showEditProfile} onOpenChange={setShowEditProfile} />
     </div>
   );
 };
