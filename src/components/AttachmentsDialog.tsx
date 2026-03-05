@@ -1,9 +1,9 @@
-import { useState, useRef } from 'react';
+import { useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchAttachments, uploadAttachment, deleteAttachment } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
-import { Paperclip, Upload, Trash2, FileText, Image, Camera, X } from 'lucide-react';
+import { Paperclip, Upload, Trash2, FileText, Image, Camera, Download, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface AttachmentsDialogProps {
@@ -49,9 +49,26 @@ const AttachmentsDialog = ({ open, onOpenChange, billId }: AttachmentsDialogProp
     e.target.value = '';
   };
 
-  const getIcon = (type?: string | null) => {
-    if (type?.startsWith('image/')) return <Image size={16} className="text-primary" />;
-    return <FileText size={16} className="text-primary" />;
+  const handleOpenFile = (url: string) => {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleDownload = async (url: string, fileName: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
+    } catch {
+      // Fallback: open in new tab
+      window.open(url, '_blank');
+    }
   };
 
   return (
@@ -85,7 +102,7 @@ const AttachmentsDialog = ({ open, onOpenChange, billId }: AttachmentsDialogProp
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*,.pdf"
+            accept="image/*,.pdf,.doc,.docx"
             multiple
             onChange={handleFileSelect}
             className="hidden"
@@ -120,26 +137,46 @@ const AttachmentsDialog = ({ open, onOpenChange, billId }: AttachmentsDialogProp
           ) : (
             <div className="space-y-2">
               {attachments.map((att) => (
-                <div key={att.id} className="glass-card p-3 flex items-center gap-3">
-                  {att.file_type?.startsWith('image/') ? (
-                    <img src={att.file_url} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
-                  ) : (
-                    <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
-                      {getIcon(att.file_type)}
+                <div key={att.id} className="glass-card p-3 space-y-2">
+                  <div className="flex items-center gap-3">
+                    {att.file_type?.startsWith('image/') ? (
+                      <button onClick={() => handleOpenFile(att.file_url)} className="flex-shrink-0">
+                        <img src={att.file_url} alt={att.file_name} className="w-12 h-12 rounded-lg object-cover cursor-pointer hover:opacity-80 transition-opacity" />
+                      </button>
+                    ) : (
+                      <button onClick={() => handleOpenFile(att.file_url)} className="w-12 h-12 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0 cursor-pointer hover:bg-secondary/80 transition-colors">
+                        <FileText size={18} className="text-primary" />
+                      </button>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <button onClick={() => handleOpenFile(att.file_url)} className="text-xs font-medium truncate block w-full text-left hover:text-primary transition-colors">
+                        {att.file_name}
+                      </button>
+                      <p className="text-[10px] text-muted-foreground">
+                        {new Date(att.created_at).toLocaleDateString('pt-BR')}
+                      </p>
                     </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium truncate">{att.file_name}</p>
-                    <p className="text-[10px] text-muted-foreground">
-                      {new Date(att.created_at).toLocaleDateString('pt-BR')}
-                    </p>
                   </div>
-                  <button
-                    onClick={() => deleteMutation.mutate({ id: att.id, url: att.file_url })}
-                    className="text-muted-foreground hover:text-destructive transition-colors p-1"
-                  >
-                    <Trash2 size={14} />
-                  </button>
+                  <div className="flex items-center gap-1 border-t border-border/50 pt-2">
+                    <button
+                      onClick={() => handleOpenFile(att.file_url)}
+                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors px-2 py-1 rounded-lg hover:bg-primary/10"
+                    >
+                      <ExternalLink size={12} /> Abrir
+                    </button>
+                    <button
+                      onClick={() => handleDownload(att.file_url, att.file_name)}
+                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors px-2 py-1 rounded-lg hover:bg-primary/10"
+                    >
+                      <Download size={12} /> Baixar
+                    </button>
+                    <button
+                      onClick={() => deleteMutation.mutate({ id: att.id, url: att.file_url })}
+                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors px-2 py-1 rounded-lg hover:bg-destructive/10 ml-auto"
+                    >
+                      <Trash2 size={12} /> Excluir
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
