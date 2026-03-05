@@ -219,6 +219,25 @@ export const deleteAttachment = async (id: string, fileUrl: string) => {
   if (error) throw error;
 };
 
+// Bill Splits
+export const fetchBillSplits = async (billId: string) => {
+  const { data, error } = await supabase
+    .from('bill_splits')
+    .select('*')
+    .eq('bill_id', billId);
+  if (error) throw error;
+  return data;
+};
+
+export const saveBillSplits = async (billId: string, splits: { user_id: string; percentage: number; amount: number; weight: number | null }[]) => {
+  // Delete existing splits first
+  await supabase.from('bill_splits').delete().eq('bill_id', billId);
+  if (splits.length === 0) return;
+  const rows = splits.map(s => ({ bill_id: billId, user_id: s.user_id, percentage: s.percentage, amount: s.amount, weight: s.weight }));
+  const { error } = await supabase.from('bill_splits').insert(rows);
+  if (error) throw error;
+};
+
 // Profile
 export const fetchProfile = async (userId: string) => {
   const { data, error } = await supabase
