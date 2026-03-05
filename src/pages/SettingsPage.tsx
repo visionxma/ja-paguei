@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, Moon, Sun, Monitor, DollarSign, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePreferences } from '@/hooks/usePreferences';
+import { useTheme } from '@/contexts/ThemeContext';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface OptionCardProps {
@@ -30,6 +31,7 @@ const OptionCard = ({ icon, label, selected, onClick, disabled }: OptionCardProp
 const SettingsPage = () => {
   const navigate = useNavigate();
   const { preferences, isLoading, updatePreference, isSaving } = usePreferences();
+  const { theme, setTheme } = useTheme();
 
   if (isLoading) {
     return (
@@ -57,9 +59,9 @@ const SettingsPage = () => {
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-4">
           <h2 className="text-sm font-display font-semibold mb-3">Tema</h2>
           <div className="flex gap-2">
-            <OptionCard icon={<Moon size={18} />} label="Escuro" selected={preferences.theme === 'dark'} onClick={() => updatePreference({ theme: 'dark' })} disabled={isSaving} />
-            <OptionCard icon={<Sun size={18} />} label="Claro" selected={preferences.theme === 'light'} onClick={() => updatePreference({ theme: 'light' })} disabled={isSaving} />
-            <OptionCard icon={<Monitor size={18} />} label="Sistema" selected={preferences.theme === 'system'} onClick={() => updatePreference({ theme: 'system' })} disabled={isSaving} />
+            <OptionCard icon={<Moon size={18} />} label="Escuro" selected={theme === 'dark'} onClick={() => setTheme('dark')} disabled={isSaving} />
+            <OptionCard icon={<Sun size={18} />} label="Claro" selected={theme === 'light'} onClick={() => setTheme('light')} disabled={isSaving} />
+            <OptionCard icon={<Monitor size={18} />} label="Sistema" selected={theme === 'system'} onClick={() => setTheme('system')} disabled={isSaving} />
           </div>
         </motion.div>
 
