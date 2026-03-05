@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { User, Settings, LogOut, Bell, Shield, Edit2 } from 'lucide-react';
+import { User, Settings, LogOut, Bell, Shield, Edit2, Copy, Check, ExternalLink, Share2 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -15,6 +15,7 @@ const ProfilePage = () => {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const [showEditProfile, setShowEditProfile] = useState(false);
+  const [copiedFriend, setCopiedFriend] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -22,6 +23,35 @@ const ProfilePage = () => {
   };
 
   const friendQRValue = user ? `${APP_URL}/add-friend?user=${user.id}` : '';
+
+  const handleCopyFriendLink = async () => {
+    try {
+      await navigator.clipboard.writeText(friendQRValue);
+      setCopiedFriend(true);
+      const { toast } = await import('sonner');
+      toast.success('Link de amizade copiado!');
+      setTimeout(() => setCopiedFriend(false), 2000);
+    } catch {
+      const { toast } = await import('sonner');
+      toast.error('Não foi possível copiar o link');
+    }
+  };
+
+  const handleShareFriendLink = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Me adicione como amigo!',
+          text: 'Use este link para me adicionar como amigo no Já Paguei.',
+          url: friendQRValue,
+        });
+      } catch (err: any) {
+        if (err.name !== 'AbortError') handleCopyFriendLink();
+      }
+    } else {
+      handleCopyFriendLink();
+    }
+  };
 
   const menuItems = [
     { icon: Bell, label: 'Notificações', desc: 'Alertas de vencimento', path: '/notifications' },
@@ -67,8 +97,8 @@ const ProfilePage = () => {
               <TabsTrigger value="friend" className="flex-1 text-xs">QR de Amizade</TabsTrigger>
               <TabsTrigger value="app" className="flex-1 text-xs">QR do App</TabsTrigger>
             </TabsList>
-            <TabsContent value="friend" className="space-y-3">
-              <div className="flex justify-center py-2">
+            <TabsContent value="friend" className="space-y-4">
+              <div className="flex justify-center py-3">
                 <div className="bg-white p-3 rounded-xl">
                   <QRCodeSVG value={friendQRValue} size={160} level="H" />
                 </div>
@@ -76,6 +106,27 @@ const ProfilePage = () => {
               <p className="text-xs text-center text-muted-foreground">
                 Peça para um amigo escanear este QR Code para te adicionar
               </p>
+
+              {/* Link + Copy */}
+              <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-2.5">
+                <ExternalLink size={14} className="text-muted-foreground shrink-0" />
+                <span className="text-xs text-muted-foreground truncate flex-1">{friendQRValue}</span>
+                <button
+                  onClick={handleCopyFriendLink}
+                  className="shrink-0 p-1.5 rounded-md hover:bg-accent transition-colors"
+                >
+                  {copiedFriend ? <Check size={14} className="text-green-500" /> : <Copy size={14} className="text-muted-foreground" />}
+                </button>
+              </div>
+
+              {/* Share button */}
+              <button
+                onClick={handleShareFriendLink}
+                className="w-full flex items-center justify-center gap-2 gradient-primary text-primary-foreground rounded-lg py-2.5 text-sm font-medium hover:opacity-90 transition-opacity"
+              >
+                <Share2 size={16} />
+                Compartilhar link de amizade
+              </button>
             </TabsContent>
             <TabsContent value="app">
               <ShareAppSection />
