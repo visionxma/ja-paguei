@@ -13,6 +13,9 @@ import GroupsPage from "./pages/GroupsPage";
 import GroupDetail from "./pages/GroupDetail";
 import HistoryPage from "./pages/HistoryPage";
 import ProfilePage from "./pages/ProfilePage";
+import FriendsPage from "./pages/FriendsPage";
+import AddFriendPage from "./pages/AddFriendPage";
+import ScanFriendPage from "./pages/ScanFriendPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import SecurityPage from "./pages/SecurityPage";
 import SettingsPage from "./pages/SettingsPage";
@@ -40,6 +43,9 @@ const AppRoutes = () => {
         <Route path="/groups" element={<ProtectedRoute><GroupsPage /></ProtectedRoute>} />
         <Route path="/groups/:id" element={<ProtectedRoute><GroupDetail /></ProtectedRoute>} />
         <Route path="/history" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
+        <Route path="/friends" element={<ProtectedRoute><FriendsPage /></ProtectedRoute>} />
+        <Route path="/add-friend" element={<ProtectedRoute><AddFriendPage /></ProtectedRoute>} />
+        <Route path="/scan-friend" element={<ProtectedRoute><ScanFriendPage /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
         <Route path="/security" element={<ProtectedRoute><SecurityPage /></ProtectedRoute>} />
