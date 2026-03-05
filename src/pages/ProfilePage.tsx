@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { User, Settings, LogOut, Bell, Shield, Edit2 } from 'lucide-react';
+import { User, Settings, LogOut, Bell, Shield, Edit2, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { formatUserName } from '@/lib/utils';
+import { lovable } from '@/integrations/lovable';
 import ShareAppSection from '@/components/ShareAppSection';
 import EditProfileDialog from '@/components/EditProfileDialog';
+import { toast } from 'sonner';
 
 const ProfilePage = () => {
   const { profile, signOut } = useAuth();
@@ -15,6 +17,18 @@ const ProfilePage = () => {
   const handleSignOut = async () => {
     await signOut();
     navigate('/login');
+  };
+
+  const handleSwitchAccount = async () => {
+    try {
+      await signOut();
+      await lovable.auth.signInWithOAuth('google', {
+        redirect_uri: window.location.origin,
+        extraParams: { prompt: 'select_account' },
+      });
+    } catch {
+      toast.error('Erro ao trocar de conta');
+    }
   };
 
   const menuItems = [
@@ -45,9 +59,18 @@ const ProfilePage = () => {
             <p className="text-sm text-muted-foreground truncate">{profile?.email}</p>
           </div>
           <button
+            onClick={handleSwitchAccount}
+            className="p-2 rounded-lg hover:bg-primary/10 transition-colors text-muted-foreground"
+            aria-label="Trocar conta Google"
+            title="Trocar conta Google"
+          >
+            <RefreshCw size={16} />
+          </button>
+          <button
             onClick={() => setShowEditProfile(true)}
             className="p-2 rounded-lg hover:bg-primary/10 transition-colors text-primary"
-            aria-label="Editar perfil"
+            aria-label="Editar nome"
+            title="Editar nome"
           >
             <Edit2 size={16} />
           </button>
