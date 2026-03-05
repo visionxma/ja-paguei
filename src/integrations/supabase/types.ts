@@ -65,6 +65,7 @@ export type Database = {
           paid_at: string | null
           recurrence: string
           responsible_id: string | null
+          start_date: string | null
           status: string
           updated_at: string
           user_id: string
@@ -81,6 +82,7 @@ export type Database = {
           paid_at?: string | null
           recurrence?: string
           responsible_id?: string | null
+          start_date?: string | null
           status?: string
           updated_at?: string
           user_id: string
@@ -97,6 +99,7 @@ export type Database = {
           paid_at?: string | null
           recurrence?: string
           responsible_id?: string | null
+          start_date?: string | null
           status?: string
           updated_at?: string
           user_id?: string

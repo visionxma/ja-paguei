@@ -88,6 +88,7 @@ const GroupDetail = () => {
       group_id: id,
       description: bill.description,
       amount: bill.amount,
+      start_date: bill.startDate || null,
       due_date: bill.dueDate || null,
       category: bill.category,
       status: bill.status,

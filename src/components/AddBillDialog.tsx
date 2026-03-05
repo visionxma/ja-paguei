@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CalendarIcon, Paperclip } from 'lucide-react';
@@ -30,9 +30,25 @@ const recurrenceOptions: { value: BillRecurrence; label: string; desc: string }[
   { value: 'anual', label: 'Anual', desc: 'Uma vez por ano' },
 ];
 
+// Currency formatting helpers
+const formatCurrencyInput = (value: string): string => {
+  const digits = value.replace(/\D/g, '');
+  if (!digits) return '';
+  const cents = parseInt(digits, 10);
+  const reais = cents / 100;
+  return reais.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
+const parseCurrencyToNumber = (formatted: string): number => {
+  if (!formatted) return 0;
+  const cleaned = formatted.replace(/\./g, '').replace(',', '.');
+  return parseFloat(cleaned) || 0;
+};
+
 const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, onEdit, onOpenAttachments }: AddBillDialogProps) => {
   const [description, setDescription] = useState('');
-  const [amount, setAmount] = useState('');
+  const [amountDisplay, setAmountDisplay] = useState('');
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
   const [category, setCategory] = useState<BillCategory>('geral');
   const [recurrence, setRecurrence] = useState<BillRecurrence>('unica');
@@ -44,9 +60,12 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
   useEffect(() => {
     if (open && editBill) {
       setDescription(editBill.description || '');
-      setAmount(editBill.amount?.toString() || '');
+      const amt = editBill.amount ? Number(editBill.amount) : 0;
+      setAmountDisplay(amt > 0 ? amt.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '');
+      const startVal = editBill.start_date || editBill.startDate;
+      setStartDate(startVal ? new Date(startVal + 'T12:00:00') : undefined);
       const dateVal = editBill.due_date || editBill.dueDate;
-      setDueDate(dateVal ? new Date(dateVal) : undefined);
+      setDueDate(dateVal ? new Date(dateVal + 'T12:00:00') : undefined);
       setCategory(editBill.category || 'geral');
       setRecurrence(editBill.recurrence || 'unica');
       setNotes(editBill.notes || '');
@@ -58,7 +77,8 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
 
   const resetForm = () => {
     setDescription('');
-    setAmount('');
+    setAmountDisplay('');
+    setStartDate(undefined);
     setDueDate(undefined);
     setCategory('geral');
     setRecurrence('unica');
@@ -66,14 +86,22 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
     setResponsibleId('');
   };
 
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    setAmountDisplay(formatCurrencyInput(raw));
+  };
+
   const handleSubmit = () => {
-    if (!description || !amount) return;
+    const amount = parseCurrencyToNumber(amountDisplay);
+    if (!description || amount <= 0) return;
     const dueDateStr = dueDate ? format(dueDate, 'yyyy-MM-dd') : undefined;
+    const startDateStr = startDate ? format(startDate, 'yyyy-MM-dd') : undefined;
 
     if (isEditing && onEdit) {
       onEdit(editBill.id, {
         description,
-        amount: parseFloat(amount),
+        amount,
+        start_date: startDateStr || null,
         due_date: dueDateStr || null,
         category,
         recurrence,
@@ -83,7 +111,8 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
     } else {
       onAdd({
         description,
-        amount: parseFloat(amount),
+        amount,
+        startDate: startDateStr,
         dueDate: dueDateStr,
         category,
         status: 'pendente',
@@ -116,21 +145,53 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
             />
           </div>
 
-          {/* Valor */}
+          {/* Valor com máscara monetária */}
           <div>
-            <Label className="text-xs text-muted-foreground mb-1.5 block">Valor (R$)</Label>
-            <Input
-              type="number"
-              placeholder="150.00"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              className="bg-secondary border-border text-foreground placeholder:text-muted-foreground"
-            />
+            <Label className="text-xs text-muted-foreground mb-1.5 block">Valor</Label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">R$</span>
+              <Input
+                type="text"
+                inputMode="numeric"
+                placeholder="0,00"
+                value={amountDisplay}
+                onChange={handleAmountChange}
+                className="bg-secondary border-border text-foreground placeholder:text-muted-foreground pl-10"
+              />
+            </div>
           </div>
 
-          {/* Data de Vencimento com Calendar Popover */}
+          {/* Data de Início */}
           <div>
-            <Label className="text-xs text-muted-foreground mb-1.5 block">Vencimento (opcional)</Label>
+            <Label className="text-xs text-muted-foreground mb-1.5 block">Data de início (opcional)</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal bg-secondary border-border",
+                    !startDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {startDate ? format(startDate, "dd/MM/yyyy") : "Selecionar data"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 z-[60]" align="start">
+                <Calendar
+                  mode="single"
+                  selected={startDate}
+                  onSelect={setStartDate}
+                  initialFocus
+                  className="p-3 pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Data de Vencimento */}
+          <div>
+            <Label className="text-xs text-muted-foreground mb-1.5 block">Data de vencimento (opcional)</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -144,13 +205,13 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
                   {dueDate ? format(dueDate, "dd/MM/yyyy") : "Selecionar data"}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
+              <PopoverContent className="w-auto p-0 z-[60]" align="start">
                 <Calendar
                   mode="single"
                   selected={dueDate}
                   onSelect={setDueDate}
                   initialFocus
-                  className={cn("p-3 pointer-events-auto")}
+                  className="p-3 pointer-events-auto"
                 />
               </PopoverContent>
             </Popover>
@@ -241,7 +302,7 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
 
           <button
             onClick={handleSubmit}
-            disabled={!description || !amount}
+            disabled={!description || !amountDisplay}
             className="w-full gradient-primary text-primary-foreground font-semibold py-3 rounded-xl transition-all hover:opacity-90 disabled:opacity-50"
           >
             {isEditing ? 'Salvar Alterações' : 'Criar Conta'}

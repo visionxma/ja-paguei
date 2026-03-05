@@ -27,6 +27,7 @@ export const createBill = async (bill: {
   description: string;
   amount: number;
   due_date?: string | null;
+  start_date?: string | null;
   category: string;
   status: string;
   recurrence: string;
@@ -47,6 +48,7 @@ export const updateBill = async (id: string, updates: {
   description?: string;
   amount?: number;
   due_date?: string | null;
+  start_date?: string | null;
   category?: string;
   status?: string;
   recurrence?: string;
@@ -104,6 +106,7 @@ export const fetchGroupMembers = async (groupId: string) => {
 };
 
 export const createGroup = async (name: string, description: string, userId: string) => {
+  // Insert group
   const { data: group, error } = await supabase
     .from('groups')
     .insert({ name, description, created_by: userId })
@@ -111,11 +114,13 @@ export const createGroup = async (name: string, description: string, userId: str
     .single();
   if (error) throw error;
 
-  await supabase.from('group_members').insert({
+  // Add creator as admin member
+  const { error: memberError } = await supabase.from('group_members').insert({
     group_id: group.id,
     user_id: userId,
     role: 'admin',
   });
+  if (memberError) throw memberError;
 
   return group;
 };
@@ -127,7 +132,6 @@ export const deleteGroup = async (id: string) => {
 
 // Invites
 export const inviteToGroup = async (groupId: string, email: string, invitedBy: string) => {
-  // Check if user exists
   const { data: profile } = await supabase
     .from('profiles')
     .select('user_id')
@@ -135,7 +139,6 @@ export const inviteToGroup = async (groupId: string, email: string, invitedBy: s
     .single();
 
   if (profile) {
-    // User exists - add directly
     const { error } = await supabase.from('group_members').insert({
       group_id: groupId,
       user_id: profile.user_id,
@@ -148,7 +151,6 @@ export const inviteToGroup = async (groupId: string, email: string, invitedBy: s
     return { added: true };
   }
 
-  // Save invite
   const { error } = await supabase.from('group_invites').insert({
     group_id: groupId,
     email,
@@ -208,10 +210,10 @@ export const fetchAttachments = async (billId: string) => {
 };
 
 export const deleteAttachment = async (id: string, fileUrl: string) => {
-  // Extract path from URL
   const urlParts = fileUrl.split('/attachments/');
   if (urlParts[1]) {
-    await supabase.storage.from('attachments').remove([urlParts[1]]);
+    const path = decodeURIComponent(urlParts[1]);
+    await supabase.storage.from('attachments').remove([path]);
   }
   const { error } = await supabase.from('bill_attachments').delete().eq('id', id);
   if (error) throw error;

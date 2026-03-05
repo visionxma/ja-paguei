@@ -6,6 +6,7 @@ export interface Bill {
   id: string;
   description: string;
   amount: number;
+  startDate?: string;
   dueDate?: string;
   category: BillCategory;
   status: BillStatus;
