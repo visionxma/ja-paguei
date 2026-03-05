@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { User, Settings, LogOut, Bell, Shield } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import ShareAppSection from '@/components/ShareAppSection';
 
 const ProfilePage = () => {
   const { profile, signOut } = useAuth();
@@ -56,6 +57,10 @@ const ProfilePage = () => {
             <LogOut size={18} />
             <p className="text-sm font-medium">Sair da conta</p>
           </motion.button>
+        </div>
+
+        <div className="mt-6">
+          <ShareAppSection />
         </div>
       </div>
     </div>
