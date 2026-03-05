@@ -4,7 +4,7 @@ import { Share2, Copy, Check, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 
-const APP_URL = window.location.origin;
+const APP_URL = 'https://ja-paguei.lovable.app';
 
 const ShareAppSection = () => {
   const [copied, setCopied] = useState(false);
