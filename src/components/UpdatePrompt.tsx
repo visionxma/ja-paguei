@@ -25,10 +25,9 @@ const UpdatePrompt = () => {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 20, scale: 0.9 }}
           onClick={() => updateServiceWorker(true)}
-          className="fixed bottom-20 right-4 z-[60] flex items-center gap-2 px-4 py-2.5 rounded-full bg-primary text-primary-foreground shadow-lg hover:opacity-90 transition-opacity text-sm font-medium"
+          className="fixed bottom-20 right-4 z-[60] px-4 py-2.5 rounded-full bg-primary text-primary-foreground shadow-lg hover:opacity-90 transition-opacity text-sm font-medium"
         >
-          <RefreshCw size={16} className="animate-spin" />
-          Atualizar app
+          Atualizar
         </motion.button>
       )}
     </AnimatePresence>
