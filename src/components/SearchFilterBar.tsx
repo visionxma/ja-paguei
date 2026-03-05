@@ -1,4 +1,4 @@
-import { Search, Filter, X } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { BillCategory, CATEGORY_LABELS } from '@/types/finance';
 
 interface SearchFilterBarProps {

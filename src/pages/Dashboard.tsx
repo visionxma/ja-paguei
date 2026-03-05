@@ -12,6 +12,16 @@ import { useFormat } from '@/contexts/FormatContext';
 import { fetchPersonalBills, createBill, updateBill, updateBillStatus, deleteBill } from '@/lib/api';
 import { Bill } from '@/types/finance';
 import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@/components/ui/alert-dialog';
 
 const Dashboard = () => {
   const { user, profile } = useAuth();
@@ -24,6 +34,7 @@ const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('todas');
   const [periodFilter, setPeriodFilter] = useState('todos');
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const { data: bills = [], isLoading } = useQuery({
     queryKey: ['personal-bills', user?.id],
@@ -34,22 +45,26 @@ const Dashboard = () => {
   const createMutation = useMutation({
     mutationFn: (bill: Parameters<typeof createBill>[0]) => createBill(bill),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['personal-bills'] }); toast.success('Conta criada!'); },
+    onError: () => { toast.error('Erro ao criar conta'); },
   });
 
   const editMutation = useMutation({
     mutationFn: ({ id, updates }: { id: string; updates: any }) => updateBill(id, updates),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['personal-bills'] }); toast.success('Conta atualizada!'); },
+    onError: () => { toast.error('Erro ao atualizar conta'); },
   });
 
   const toggleMutation = useMutation({
     mutationFn: ({ id, status, paidAt }: { id: string; status: string; paidAt?: string | null }) =>
       updateBillStatus(id, status, paidAt),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['personal-bills'] }),
+    onError: () => { toast.error('Erro ao alterar status'); },
   });
 
   const deleteMutation = useMutation({
     mutationFn: deleteBill,
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['personal-bills'] }); toast.success('Conta excluída!'); },
+    onError: () => { toast.error('Erro ao excluir conta'); },
   });
 
   const toggleStatus = (id: string) => {
@@ -60,8 +75,13 @@ const Dashboard = () => {
   };
 
   const handleDelete = (id: string) => {
-    if (window.confirm('Tem certeza que deseja excluir esta conta?')) {
-      deleteMutation.mutate(id);
+    setDeleteConfirmId(id);
+  };
+
+  const confirmDelete = () => {
+    if (deleteConfirmId) {
+      deleteMutation.mutate(deleteConfirmId);
+      setDeleteConfirmId(null);
     }
   };
 
@@ -144,10 +164,30 @@ const Dashboard = () => {
     createdAt: bill.created_at,
   });
 
+  // Build real monthly data from bills
+  const monthlyData = useMemo(() => {
+    const monthMap = new Map<string, { month: string; total: number; paid: number; pending: number }>();
+    bills.forEach(b => {
+      const dateStr = b.due_date || b.created_at;
+      if (!dateStr) return;
+      const d = new Date(dateStr);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const label = d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
+      if (!monthMap.has(key)) {
+        monthMap.set(key, { month: label.charAt(0).toUpperCase() + label.slice(1), total: 0, paid: 0, pending: 0 });
+      }
+      const entry = monthMap.get(key)!;
+      const amount = Number(b.amount);
+      entry.total += amount;
+      if (b.status === 'pago') entry.paid += amount;
+      else entry.pending += amount;
+    });
+    return Array.from(monthMap.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([, v]) => v);
+  }, [bills]);
+
   const billsForChart = bills.map(b => toBillCard(b)) as any;
-  const monthlyData = [
-    { month: 'Mar', total: bills.reduce((s, b) => s + Number(b.amount), 0), paid: bills.filter(b => b.status === 'pago').reduce((s, b) => s + Number(b.amount), 0), pending: totalPending },
-  ];
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -257,6 +297,24 @@ const Dashboard = () => {
           billId={attachBillId}
         />
       )}
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={!!deleteConfirmId} onOpenChange={(open) => { if (!open) setDeleteConfirmId(null); }}>
+        <AlertDialogContent className="bg-card border-border text-foreground max-w-sm mx-auto">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display">Excluir conta</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
+              Tem certeza que deseja excluir esta conta? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex gap-2">
+            <AlertDialogCancel className="flex-1">Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
