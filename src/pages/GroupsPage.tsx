@@ -38,12 +38,16 @@ const GroupsPage = () => {
     },
   });
 
+  // Deduplicate groups by id
   const groups = groupMemberships
     .filter(gm => gm.groups)
-    .map(gm => ({
-      ...(gm.groups as any),
-      role: gm.role,
-    }));
+    .reduce((acc, gm) => {
+      const g = gm.groups as any;
+      if (!acc.some(x => x.id === g.id)) {
+        acc.push({ ...g, role: gm.role });
+      }
+      return acc;
+    }, [] as any[]);
 
   return (
     <div className="min-h-screen bg-background pb-24">
