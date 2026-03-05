@@ -11,16 +11,18 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { BillCategory, BillRecurrence, CATEGORY_LABELS, Bill } from '@/types/finance';
+import BillSplitSection, { SplitEntry } from '@/components/BillSplitSection';
 
 interface AddBillDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAdd: (bill: Omit<Bill, 'id' | 'createdAt'>) => void;
+  onAdd: (bill: Omit<Bill, 'id' | 'createdAt'>, splits?: SplitEntry[]) => void;
   isGroup?: boolean;
   members?: { user_id: string; profiles: { display_name: string | null } | null }[];
   editBill?: any;
-  onEdit?: (id: string, updates: any) => void;
+  onEdit?: (id: string, updates: any, splits?: SplitEntry[]) => void;
   onOpenAttachments?: (billId: string) => void;
+  existingSplits?: SplitEntry[];
 }
 
 const categories: BillCategory[] = ['geral', 'aluguel', 'energia', 'agua', 'internet', 'mercado', 'limpeza', 'outro'];
@@ -45,7 +47,7 @@ const parseCurrencyToNumber = (formatted: string): number => {
   return parseFloat(cleaned) || 0;
 };
 
-const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, onEdit, onOpenAttachments }: AddBillDialogProps) => {
+const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, onEdit, onOpenAttachments, existingSplits }: AddBillDialogProps) => {
   const [description, setDescription] = useState('');
   const [amountDisplay, setAmountDisplay] = useState('');
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
@@ -54,7 +56,7 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
   const [recurrence, setRecurrence] = useState<BillRecurrence>('unica');
   const [notes, setNotes] = useState('');
   const [responsibleId, setResponsibleId] = useState('');
-
+  const [splits, setSplits] = useState<SplitEntry[]>(existingSplits || []);
   const isEditing = !!editBill;
 
   useEffect(() => {
@@ -73,6 +75,7 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
     } else if (open && !editBill) {
       resetForm();
     }
+    if (open && existingSplits) setSplits(existingSplits);
   }, [open, editBill]);
 
   const resetForm = () => {
@@ -84,6 +87,7 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
     setRecurrence('unica');
     setNotes('');
     setResponsibleId('');
+    setSplits([]);
   };
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -107,7 +111,7 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
         recurrence,
         notes: notes || null,
         responsible_id: responsibleId || null,
-      });
+      }, splits);
     } else {
       onAdd({
         description,
@@ -119,7 +123,7 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
         recurrence,
         notes,
         responsibleId: responsibleId || undefined,
-      });
+      }, splits);
     }
     resetForm();
     onOpenChange(false);
@@ -275,6 +279,16 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
                 ))}
               </select>
             </div>
+          )}
+
+          {/* Divisão de despesa (apenas em grupo) */}
+          {isGroup && members && members.length > 0 && (
+            <BillSplitSection
+              totalAmount={parseCurrencyToNumber(amountDisplay)}
+              members={members}
+              splits={splits}
+              onSplitsChange={setSplits}
+            />
           )}
 
           {/* Observações */}

@@ -4,7 +4,7 @@ import { ArrowLeft, Plus, UserPlus, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
-import { fetchGroupDetail, fetchGroupMembers, fetchGroupBills, createBill, updateBill, updateBillStatus, deleteBill } from '@/lib/api';
+import { fetchGroupDetail, fetchGroupMembers, fetchGroupBills, createBill, updateBill, updateBillStatus, deleteBill, saveBillSplits, fetchBillSplits } from '@/lib/api';
 import BillCard from '@/components/BillCard';
 import FinanceCharts from '@/components/FinanceCharts';
 import AddBillDialog from '@/components/AddBillDialog';
@@ -12,6 +12,7 @@ import AttachmentsDialog from '@/components/AttachmentsDialog';
 import InviteMemberDialog from '@/components/InviteMemberDialog';
 import SearchFilterBar from '@/components/SearchFilterBar';
 import { Bill } from '@/types/finance';
+import { SplitEntry } from '@/components/BillSplitSection';
 import { toast } from 'sonner';
 
 const GroupDetail = () => {
@@ -79,11 +80,14 @@ const GroupDetail = () => {
   };
 
   const handleEdit = (bill: any) => { setEditBill(bill); setShowAddBill(true); };
-  const handleEditSubmit = (billId: string, updates: any) => editMutation.mutate({ billId, updates });
+  const handleEditSubmit = async (billId: string, updates: any, splits?: SplitEntry[]) => {
+    await editMutation.mutateAsync({ billId, updates });
+    if (splits) await saveBillSplits(billId, splits);
+  };
 
-  const addBill = (bill: Omit<Bill, 'id' | 'createdAt'>) => {
+  const addBill = async (bill: Omit<Bill, 'id' | 'createdAt'>, splits?: SplitEntry[]) => {
     if (!user || !id) return;
-    createMutation.mutate({
+    const created = await createMutation.mutateAsync({
       user_id: user.id,
       group_id: id,
       description: bill.description,
@@ -96,6 +100,9 @@ const GroupDetail = () => {
       notes: bill.notes || null,
       responsible_id: bill.responsibleId || null,
     });
+    if (splits && splits.length > 0 && created?.id) {
+      await saveBillSplits(created.id, splits);
+    }
   };
 
   // Get member name by user_id
