@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { FormatProvider } from "@/contexts/FormatContext";
 import BottomNav from "@/components/BottomNav";
+import UpdatePrompt from "@/components/UpdatePrompt";
 import Dashboard from "./pages/Dashboard";
 import GroupsPage from "./pages/GroupsPage";
 import GroupDetail from "./pages/GroupDetail";
@@ -46,6 +47,7 @@ const AppRoutes = () => {
         <Route path="*" element={<NotFound />} />
       </Routes>
       {user && <BottomNav />}
+      <UpdatePrompt />
     </div>
   );
 };
