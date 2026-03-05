@@ -279,6 +279,60 @@ export type Database = {
         }
         Relationships: []
       }
+      user_preferences: {
+        Row: {
+          created_at: string
+          currency: string
+          date_format: string
+          id: string
+          notify_due_1day: boolean
+          notify_due_3days: boolean
+          notify_due_7days: boolean
+          notify_group_bill_changed: boolean
+          notify_group_bill_paid: boolean
+          notify_group_new_bill: boolean
+          notify_group_new_member: boolean
+          notify_overdue: boolean
+          theme: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          date_format?: string
+          id?: string
+          notify_due_1day?: boolean
+          notify_due_3days?: boolean
+          notify_due_7days?: boolean
+          notify_group_bill_changed?: boolean
+          notify_group_bill_paid?: boolean
+          notify_group_new_bill?: boolean
+          notify_group_new_member?: boolean
+          notify_overdue?: boolean
+          theme?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          date_format?: string
+          id?: string
+          notify_due_1day?: boolean
+          notify_due_3days?: boolean
+          notify_due_7days?: boolean
+          notify_group_bill_changed?: boolean
+          notify_group_bill_paid?: boolean
+          notify_group_new_bill?: boolean
+          notify_group_new_member?: boolean
+          notify_overdue?: boolean
+          theme?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

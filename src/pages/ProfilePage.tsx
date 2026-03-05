@@ -14,9 +14,9 @@ const ProfilePage = () => {
   };
 
   const menuItems = [
-    { icon: Bell, label: 'Notificações', desc: 'Alertas de vencimento' },
-    { icon: Shield, label: 'Segurança', desc: 'Senha e autenticação' },
-    { icon: Settings, label: 'Configurações', desc: 'Preferências do app' },
+    { icon: Bell, label: 'Notificações', desc: 'Alertas de vencimento', path: '/notifications' },
+    { icon: Shield, label: 'Segurança', desc: 'Senha e autenticação', path: '/security' },
+    { icon: Settings, label: 'Configurações', desc: 'Preferências do app', path: '/settings' },
   ];
 
   return (
@@ -44,7 +44,7 @@ const ProfilePage = () => {
 
         <div className="space-y-2">
           {menuItems.map((item, i) => (
-            <motion.button key={item.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-card/90 transition-colors">
+            <motion.button key={item.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} onClick={() => navigate(item.path)} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-card/90 transition-colors">
               <item.icon size={18} className="text-muted-foreground" />
               <div>
                 <p className="text-sm font-medium">{item.label}</p>
