@@ -2,36 +2,43 @@ import { useState } from 'react';
 import { Plus, Users, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { mockGroups } from '@/data/mockData';
-import { Group } from '@/types/finance';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/contexts/AuthContext';
+import { fetchGroups, createGroup } from '@/lib/api';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 const GroupsPage = () => {
   const navigate = useNavigate();
-  const [groups, setGroups] = useState<Group[]>(mockGroups);
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [showCreate, setShowCreate] = useState(false);
   const [newName, setNewName] = useState('');
   const [newDesc, setNewDesc] = useState('');
 
-  const createGroup = () => {
-    if (!newName) return;
-    const g: Group = {
-      id: `g${Date.now()}`,
-      name: newName,
-      description: newDesc,
-      createdAt: new Date().toISOString().slice(0, 10),
-      members: [{ id: '1', name: 'Você', email: 'you@mail.com', role: 'admin' }],
-      bills: [],
-    };
-    setGroups(prev => [g, ...prev]);
-    setNewName('');
-    setNewDesc('');
-    setShowCreate(false);
-  };
+  const { data: groupMemberships = [], isLoading } = useQuery({
+    queryKey: ['groups'],
+    queryFn: fetchGroups,
+    enabled: !!user,
+  });
 
-  const formatCurrency = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const createMutation = useMutation({
+    mutationFn: () => createGroup(newName, newDesc, user!.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['groups'] });
+      setNewName('');
+      setNewDesc('');
+      setShowCreate(false);
+    },
+  });
+
+  const groups = groupMemberships
+    .filter(gm => gm.groups)
+    .map(gm => ({
+      ...(gm.groups as any),
+      role: gm.role,
+    }));
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -51,9 +58,17 @@ const GroupsPage = () => {
           Criar Grupo
         </button>
 
-        {groups.map((group, i) => {
-          const totalPending = group.bills.filter(b => b.status === 'pendente').reduce((s, b) => s + b.amount, 0);
-          return (
+        {isLoading ? (
+          <div className="flex justify-center py-8">
+            <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : groups.length === 0 ? (
+          <div className="glass-card p-8 text-center">
+            <Users size={32} className="text-muted-foreground mx-auto mb-3" />
+            <p className="text-muted-foreground text-sm">Nenhum grupo criado ainda.</p>
+          </div>
+        ) : (
+          groups.map((group, i) => (
             <motion.button
               key={group.id}
               initial={{ opacity: 0, y: 10 }}
@@ -69,27 +84,13 @@ const GroupsPage = () => {
                   </div>
                   <div>
                     <p className="font-semibold text-sm">{group.name}</p>
-                    <p className="text-xs text-muted-foreground">{group.members.length} membros</p>
+                    {group.description && <p className="text-xs text-muted-foreground">{group.description}</p>}
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  {totalPending > 0 && (
-                    <span className="text-xs font-medium text-warning bg-warning/15 px-2 py-0.5 rounded-full">
-                      {formatCurrency(totalPending)}
-                    </span>
-                  )}
-                  <ChevronRight size={16} className="text-muted-foreground" />
-                </div>
+                <ChevronRight size={16} className="text-muted-foreground" />
               </div>
             </motion.button>
-          );
-        })}
-
-        {groups.length === 0 && (
-          <div className="glass-card p-8 text-center">
-            <Users size={32} className="text-muted-foreground mx-auto mb-3" />
-            <p className="text-muted-foreground text-sm">Nenhum grupo criado ainda.</p>
-          </div>
+          ))
         )}
       </div>
 
@@ -107,8 +108,12 @@ const GroupsPage = () => {
               <Label className="text-xs text-muted-foreground mb-1.5 block">Descrição (opcional)</Label>
               <Input value={newDesc} onChange={e => setNewDesc(e.target.value)} placeholder="Ex: Contas do apê" className="bg-secondary border-border text-foreground" />
             </div>
-            <button onClick={createGroup} className="w-full gradient-primary text-primary-foreground font-semibold py-3 rounded-xl">
-              Criar Grupo
+            <button
+              onClick={() => createMutation.mutate()}
+              disabled={!newName || createMutation.isPending}
+              className="w-full gradient-primary text-primary-foreground font-semibold py-3 rounded-xl disabled:opacity-50"
+            >
+              {createMutation.isPending ? 'Criando...' : 'Criar Grupo'}
             </button>
           </div>
         </DialogContent>
