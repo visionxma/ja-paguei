@@ -285,7 +285,7 @@ const GroupDetail = () => {
         <AttachmentsDialog open={!!attachBillId} onOpenChange={(v) => { if (!v) setAttachBillId(null); }} billId={attachBillId} />
       )}
 
-      <InviteMemberDialog open={showInvite} onOpenChange={setShowInvite} groupId={id!} />
+      <InviteMemberDialog open={showInvite} onOpenChange={setShowInvite} groupId={id!} existingMemberIds={members.map(m => m.user_id)} />
 
       {/* Delete confirmation dialog */}
       <AlertDialog open={!!deleteConfirmId} onOpenChange={(open) => { if (!open) setDeleteConfirmId(null); }}>
