@@ -1,5 +1,6 @@
 import { Bill, CATEGORY_COLORS, CATEGORY_LABELS, BillCategory } from '@/types/finance';
 import { PieChart, Pie, Cell, AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useFormat } from '@/contexts/FormatContext';
 
 interface FinanceChartsProps {
   bills: Bill[];
@@ -7,6 +8,8 @@ interface FinanceChartsProps {
 }
 
 const FinanceCharts = ({ bills, monthlyData }: FinanceChartsProps) => {
+  const { formatCurrency } = useFormat();
+
   const categoryData = Object.entries(
     bills.reduce((acc, bill) => {
       acc[bill.category] = (acc[bill.category] || 0) + Number(bill.amount);
@@ -26,8 +29,6 @@ const FinanceCharts = ({ bills, monthlyData }: FinanceChartsProps) => {
     { name: 'Pago', value: totalPaid, color: 'hsl(150, 60%, 45%)' },
     { name: 'Pendente', value: totalPending, color: 'hsl(40, 90%, 55%)' },
   ].filter(d => d.value > 0);
-
-  const formatCurrency = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
   return (
     <div className="space-y-4">
@@ -104,7 +105,7 @@ const FinanceCharts = ({ bills, monthlyData }: FinanceChartsProps) => {
         </div>
       )}
 
-      {/* Monthly Area Chart - Evolução Mensal */}
+      {/* Monthly Area Chart */}
       {monthlyData.length > 0 ? (
         <div className="glass-card p-4">
           <h3 className="text-sm font-display font-semibold mb-3">Evolução Mensal</h3>
