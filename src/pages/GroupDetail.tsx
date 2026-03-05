@@ -79,7 +79,17 @@ const GroupDetail = () => {
     if (window.confirm('Excluir esta conta?')) deleteMutation.mutate(billId);
   };
 
-  const handleEdit = (bill: any) => { setEditBill(bill); setShowAddBill(true); };
+  const [editSplits, setEditSplits] = useState<SplitEntry[]>([]);
+  const handleEdit = async (bill: any) => {
+    setEditBill(bill);
+    try {
+      const splits = await fetchBillSplits(bill.id);
+      setEditSplits(splits || []);
+    } catch {
+      setEditSplits([]);
+    }
+    setShowAddBill(true);
+  };
   const handleEditSubmit = async (billId: string, updates: any, splits?: SplitEntry[]) => {
     await editMutation.mutateAsync({ billId, updates });
     if (splits) await saveBillSplits(billId, splits);
@@ -220,12 +230,13 @@ const GroupDetail = () => {
 
       <AddBillDialog
         open={showAddBill}
-        onOpenChange={(v) => { setShowAddBill(v); if (!v) setEditBill(null); }}
+        onOpenChange={(v) => { setShowAddBill(v); if (!v) { setEditBill(null); setEditSplits([]); } }}
         onAdd={addBill}
         editBill={editBill}
         onEdit={handleEditSubmit}
         isGroup
         members={members as any}
+        existingSplits={editSplits}
       />
 
       {attachBillId && (
