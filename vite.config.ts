@@ -43,8 +43,8 @@ export default defineConfig(({ mode }) => ({
         ],
       },
       manifest: {
-        name: "Vibe Finance",
-        short_name: "Vibe Finance",
+        name: "JáPaguei",
+        short_name: "JáPaguei",
         description: "Gerencie suas finanças e divida despesas com facilidade.",
         theme_color: "#0d0e14",
         background_color: "#0d0e14",

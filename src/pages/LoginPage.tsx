@@ -17,7 +17,7 @@ const LoginPage = () => {
           <span className="text-2xl font-display font-bold text-primary-foreground">$</span>
         </div>
 
-        <h1 className="text-3xl font-display font-bold mb-2">FinançaFácil</h1>
+        <h1 className="text-3xl font-display font-bold mb-2">JáPaguei</h1>
         <p className="text-muted-foreground text-sm mb-8">
           Organize suas contas pessoais e em grupo de forma simples e visual.
         </p>
