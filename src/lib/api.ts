@@ -106,22 +106,13 @@ export const fetchGroupMembers = async (groupId: string) => {
 };
 
 export const createGroup = async (name: string, description: string, userId: string) => {
-  // Insert group
   const { data: group, error } = await supabase
     .from('groups')
     .insert({ name, description, created_by: userId })
     .select()
     .single();
   if (error) throw error;
-
-  // Add creator as admin member
-  const { error: memberError } = await supabase.from('group_members').insert({
-    group_id: group.id,
-    user_id: userId,
-    role: 'admin',
-  });
-  if (memberError) throw memberError;
-
+  // Creator is automatically added as admin via database trigger
   return group;
 };
 
