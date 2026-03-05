@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
+import { FormatProvider } from "@/contexts/FormatContext";
 import BottomNav from "@/components/BottomNav";
 import Dashboard from "./pages/Dashboard";
 import GroupsPage from "./pages/GroupsPage";
@@ -55,7 +57,11 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <AppRoutes />
+          <ThemeProvider>
+            <FormatProvider>
+              <AppRoutes />
+            </FormatProvider>
+          </ThemeProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

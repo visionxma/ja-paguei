@@ -3,11 +3,13 @@ import { motion } from 'framer-motion';
 import { Clock, Search, X } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
+import { useFormat } from '@/contexts/FormatContext';
 import { fetchPersonalBills } from '@/lib/api';
 import { CATEGORY_LABELS, BillCategory } from '@/types/finance';
 
 const HistoryPage = () => {
   const { user } = useAuth();
+  const { formatCurrency, formatDate } = useFormat();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMonth, setSelectedMonth] = useState('todos');
 
@@ -47,8 +49,6 @@ const HistoryPage = () => {
   }, [bills]);
 
   const totalPaid = paidBills.reduce((s, b) => s + Number(b.amount), 0);
-  const formatCurrency = (v: number) => Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  const formatDate = (d?: string | null) => d ? new Date(d).toLocaleDateString('pt-BR') : '';
 
   return (
     <div className="min-h-screen bg-background pb-24">

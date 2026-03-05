@@ -1,6 +1,7 @@
 import { Bill, CATEGORY_LABELS, BillCategory } from '@/types/finance';
 import { Check, Clock, Trash2, Edit2, Paperclip } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useFormat } from '@/contexts/FormatContext';
 
 interface BillCardProps {
   bill: Bill;
@@ -13,13 +14,11 @@ interface BillCardProps {
 
 const BillCard = ({ bill, onToggleStatus, onDelete, onEdit, onOpenAttachments, responsibleName }: BillCardProps) => {
   const isPaid = bill.status === 'pago';
+  const { formatCurrency, formatDate } = useFormat();
 
-  const formatCurrency = (value: number) =>
-    Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-
-  const formatDate = (date?: string) => {
+  const formatShortDate = (date?: string) => {
     if (!date) return '';
-    return new Date(date + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+    return formatDate(date);
   };
 
   const isOverdue = bill.dueDate && !isPaid && new Date(bill.dueDate) < new Date();
@@ -52,7 +51,7 @@ const BillCard = ({ bill, onToggleStatus, onDelete, onEdit, onOpenAttachments, r
               <>
                 <span className="text-xs text-muted-foreground">•</span>
                 <span className={`text-xs ${isOverdue ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
-                  {isOverdue ? '⚠️ ' : ''}{formatDate(bill.dueDate)}
+                  {isOverdue ? '⚠️ ' : ''}{formatShortDate(bill.dueDate)}
                 </span>
               </>
             )}
