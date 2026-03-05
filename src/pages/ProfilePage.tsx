@@ -8,11 +8,22 @@ import { lovable } from '@/integrations/lovable';
 import ShareAppSection from '@/components/ShareAppSection';
 import EditProfileDialog from '@/components/EditProfileDialog';
 import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@/components/ui/alert-dialog';
 
 const ProfilePage = () => {
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
   const [showEditProfile, setShowEditProfile] = useState(false);
+  const [showSwitchConfirm, setShowSwitchConfirm] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -20,6 +31,7 @@ const ProfilePage = () => {
   };
 
   const handleSwitchAccount = async () => {
+    setShowSwitchConfirm(false);
     try {
       await signOut();
       await lovable.auth.signInWithOAuth('google', {
@@ -59,7 +71,7 @@ const ProfilePage = () => {
             <p className="text-sm text-muted-foreground truncate">{profile?.email}</p>
           </div>
           <button
-            onClick={handleSwitchAccount}
+            onClick={() => setShowSwitchConfirm(true)}
             className="p-2 rounded-lg hover:bg-primary/10 transition-colors text-muted-foreground"
             aria-label="Trocar conta Google"
             title="Trocar conta Google"
@@ -99,6 +111,23 @@ const ProfilePage = () => {
       </div>
 
       <EditProfileDialog open={showEditProfile} onOpenChange={setShowEditProfile} />
+
+      <AlertDialog open={showSwitchConfirm} onOpenChange={setShowSwitchConfirm}>
+        <AlertDialogContent className="bg-card border-border text-foreground max-w-sm mx-auto">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display">Trocar conta</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
+              Você será desconectado da conta atual e redirecionado para escolher outra conta Google. Deseja continuar?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex gap-2">
+            <AlertDialogCancel className="flex-1">Voltar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSwitchAccount} className="flex-1">
+              Trocar conta
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
