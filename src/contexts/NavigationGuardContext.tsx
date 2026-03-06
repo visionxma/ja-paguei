@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
-import UnsavedChangesDialog from '@/components/UnsavedChangesDialog';
 
 interface NavigationGuardContextType {
   setDirty: (dirty: boolean) => void;
