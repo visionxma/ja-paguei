@@ -11,6 +11,8 @@ interface State {
 }
 
 class ErrorBoundary extends Component<Props, State> {
+  private retryTimeout: ReturnType<typeof setTimeout> | null = null;
+
   constructor(props: Props) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -22,6 +24,19 @@ class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('[ErrorBoundary]', error, errorInfo);
+    // Auto-retry once after a short delay for transient errors (e.g. HMR in iframe)
+    if (!this.retryTimeout) {
+      this.retryTimeout = setTimeout(() => {
+        this.retryTimeout = null;
+        this.setState({ hasError: false, error: null });
+      }, 1000);
+    }
+  }
+
+  componentWillUnmount() {
+    if (this.retryTimeout) {
+      clearTimeout(this.retryTimeout);
+    }
   }
 
   handleReload = () => {
