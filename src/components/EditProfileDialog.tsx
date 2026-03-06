@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigationGuard } from '@/contexts/NavigationGuardContext';
 import { supabase } from '@/integrations/supabase/client';
 import { formatUserName } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -15,6 +16,7 @@ interface EditProfileDialogProps {
 
 const EditProfileDialog = ({ open, onOpenChange }: EditProfileDialogProps) => {
   const { user, profile, refreshProfile } = useAuth();
+  const { setDirty } = useNavigationGuard();
   const [displayName, setDisplayName] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -25,6 +27,11 @@ const EditProfileDialog = ({ open, onOpenChange }: EditProfileDialogProps) => {
   }, [open, profile]);
 
   const hasChanged = formatUserName(displayName) !== formatUserName(profile?.display_name);
+  // Sync navigation guard with dirty state
+  useEffect(() => {
+    setDirty(hasChanged);
+    return () => setDirty(false);
+  }, [hasChanged, setDirty]);
 
   const handleSave = async () => {
     if (!user) return;

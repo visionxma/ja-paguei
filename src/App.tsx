@@ -6,9 +6,11 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { FormatProvider } from "@/contexts/FormatContext";
+import { NavigationGuardProvider } from "@/contexts/NavigationGuardContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import BottomNav from "@/components/BottomNav";
 import Header from "@/components/Header";
+import ScrollToTop from "@/components/ScrollToTop";
 import UpdatePrompt from "@/components/UpdatePrompt";
 import Dashboard from "./pages/Dashboard";
 import GroupsPage from "./pages/GroupsPage";
@@ -48,6 +50,7 @@ const AppRoutes = () => {
 
   return (
     <div className="max-w-lg mx-auto relative">
+      <ScrollToTop />
       {user && <Header />}
       <div className={user ? 'pt-14' : ''}>
         <Routes>
@@ -82,7 +85,9 @@ const App = () => (
           <AuthProvider>
             <ThemeProvider>
               <FormatProvider>
-                <AppRoutes />
+                <NavigationGuardProvider>
+                  <AppRoutes />
+                </NavigationGuardProvider>
               </FormatProvider>
             </ThemeProvider>
           </AuthProvider>
