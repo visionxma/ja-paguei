@@ -27,9 +27,18 @@ const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
+  const location = window.location;
   if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>;
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) {
+    const returnPath = location.pathname + location.search;
+    return <Navigate to={`/login?redirect=${encodeURIComponent(returnPath)}`} replace />;
+  }
   return <>{children}</>;
+};
+
+const LoginRedirect = () => {
+  const redirect = new URLSearchParams(window.location.search).get('redirect') || '/';
+  return <Navigate to={redirect} replace />;
 };
 
 const AppRoutes = () => {
@@ -39,7 +48,7 @@ const AppRoutes = () => {
   return (
     <div className="max-w-lg mx-auto relative">
       <Routes>
-        <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
+        <Route path="/login" element={user ? <LoginRedirect /> : <LoginPage />} />
         <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/groups" element={<ProtectedRoute><GroupsPage /></ProtectedRoute>} />
         <Route path="/groups/:id" element={<ProtectedRoute><GroupDetail /></ProtectedRoute>} />

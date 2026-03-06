@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { UserPlus, ArrowLeft, User } from 'lucide-react';
@@ -19,6 +19,7 @@ const AddFriendPage = () => {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
+  const autoSentRef = useRef(false);
 
   useEffect(() => {
     if (!userId) {
@@ -42,6 +43,14 @@ const AddFriendPage = () => {
         setLoading(false);
       });
   }, [userId, user]);
+
+  // Auto-send friend request when arriving from login/signup flow
+  useEffect(() => {
+    if (profile && !sent && !sending && !autoSentRef.current) {
+      autoSentRef.current = true;
+      handleAdd();
+    }
+  }, [profile]);
 
   const handleAdd = async () => {
     if (!profile) return;
