@@ -27,8 +27,6 @@ const LoginPage = () => {
     if (error) {
       if (error.message.includes('Invalid login credentials')) {
         toast.error('Email ou senha incorretos');
-      } else if (error.message.includes('Email not confirmed')) {
-        toast.error('Verifique seu email para confirmar o cadastro');
       } else {
         toast.error(error.message);
       }
@@ -64,10 +62,7 @@ const LoginPage = () => {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success('Conta criada! Verifique seu email para confirmar o cadastro.');
-      setIsSignUp(false);
-      setPassword('');
-      setConfirmPassword('');
+      toast.success('Conta criada com sucesso!');
     }
   };
 
