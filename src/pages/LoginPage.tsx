@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -8,6 +9,10 @@ import { Button } from '@/components/ui/button';
 import { Eye, EyeOff } from 'lucide-react';
 
 const LoginPage = () => {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const redirectTo = searchParams.get('redirect') || '/';
+  const isFriendInvite = redirectTo.startsWith('/add-friend');
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -30,6 +35,8 @@ const LoginPage = () => {
       } else {
         toast.error(error.message);
       }
+    } else {
+      navigate(redirectTo, { replace: true });
     }
   };
 
@@ -63,6 +70,7 @@ const LoginPage = () => {
       toast.error(error.message);
     } else {
       toast.success('Conta criada com sucesso!');
+      navigate(redirectTo, { replace: true });
     }
   };
 
@@ -84,9 +92,18 @@ const LoginPage = () => {
             <span className="text-2xl font-display font-bold text-primary-foreground">$</span>
           </div>
           <h1 className="text-3xl font-display font-bold mb-2">JáPaguei</h1>
-          <p className="text-muted-foreground text-sm">
-            Organize suas contas pessoais e em grupo de forma simples e visual.
-          </p>
+          {isFriendInvite ? (
+            <div className="bg-primary/10 border border-primary/20 rounded-xl p-3 mb-2">
+              <p className="text-sm text-primary font-medium">👋 Alguém quer te adicionar como amigo!</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {isSignUp ? 'Crie sua conta' : 'Faça login'} para aceitar a solicitação de amizade.
+              </p>
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-sm">
+              Organize suas contas pessoais e em grupo de forma simples e visual.
+            </p>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
