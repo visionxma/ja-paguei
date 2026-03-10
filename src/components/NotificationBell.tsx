@@ -26,7 +26,7 @@ const NotificationBell = () => {
   const { data: notifications = [] } = useQuery({
     queryKey: ['in-app-notifications', user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('notifications')
         .select('*')
         .eq('user_id', user!.id)
