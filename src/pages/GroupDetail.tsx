@@ -201,8 +201,20 @@ const GroupDetail = () => {
           <button onClick={() => navigate('/groups')} className="flex items-center gap-1 text-muted-foreground text-sm mb-3 hover:text-foreground transition-colors">
             <ArrowLeft size={16} /> Voltar
           </button>
-          <h1 className="text-2xl font-display font-bold">{group.name}</h1>
-          {group.description && <p className="text-sm text-muted-foreground mt-1">{group.description}</p>}
+          <button onClick={() => setShowGroupProfile(true)} className="flex items-center gap-3 text-left hover:opacity-80 transition-opacity">
+            {(group as Record<string, unknown>).image_url ? (
+              <img src={(group as Record<string, unknown>).image_url as string} alt={group.name} className="w-12 h-12 rounded-full object-cover border-2 border-primary/20" />
+            ) : (
+              <div className="w-12 h-12 rounded-full gradient-primary flex items-center justify-center border-2 border-primary/20">
+                <Users size={20} className="text-primary-foreground" />
+              </div>
+            )}
+            <div>
+              <h1 className="text-2xl font-display font-bold">{group.name}</h1>
+              <p className="text-xs text-muted-foreground">{members.length} participantes · Toque para mais info</p>
+            </div>
+          </button>
+          {group.description && <p className="text-sm text-muted-foreground mt-2 ml-15">{group.description}</p>}
         </motion.div>
 
         {overdueBills.length > 0 && (
@@ -213,7 +225,7 @@ const GroupDetail = () => {
         )}
 
         <div className="flex items-center gap-3 mt-4">
-          <div className="flex -space-x-2">
+          <div className="flex -space-x-2" onClick={() => setShowGroupProfile(true)} role="button" tabIndex={0}>
             {members.slice(0, 5).map((m) => {
               const profile = m as { id: string; profiles?: { avatar_url?: string; display_name?: string } };
               return (
