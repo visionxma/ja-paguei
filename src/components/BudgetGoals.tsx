@@ -33,7 +33,7 @@ const BudgetGoals = ({ spendingByCategory }: BudgetGoalsProps) => {
   const { data: goals = [] } = useQuery({
     queryKey: ['budget-goals', user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('budget_goals')
         .select('*')
         .eq('user_id', user!.id);
@@ -45,7 +45,7 @@ const BudgetGoals = ({ spendingByCategory }: BudgetGoalsProps) => {
 
   const upsertGoal = useMutation({
     mutationFn: async ({ category, limit }: { category: string; limit: number }) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('budget_goals')
         .upsert({ user_id: user!.id, category, monthly_limit: limit }, { onConflict: 'user_id,category' });
       if (error) throw error;
@@ -63,7 +63,7 @@ const BudgetGoals = ({ spendingByCategory }: BudgetGoalsProps) => {
 
   const deleteGoal = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('budget_goals').delete().eq('id', id);
+      const { error } = await (supabase as any).from('budget_goals').delete().eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {

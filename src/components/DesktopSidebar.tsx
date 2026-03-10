@@ -1,6 +1,8 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { Home, Users, UserCheck, Clock, User } from 'lucide-react';
 import appIcon from '@/assets/japaguei-icon.png';
+import NotificationBell from '@/components/NotificationBell';
+import GlobalSearch from '@/components/GlobalSearch';
 
 const navItems = [
   { to: '/', icon: Home, label: 'Início' },
@@ -18,7 +20,9 @@ const DesktopSidebar = () => {
       {/* Logo */}
       <div className="flex items-center gap-3 px-6 py-6 border-b border-border/50">
         <img src={appIcon} alt="JáPaguei" className="w-10 h-10 rounded-xl" />
-        <h1 className="text-xl font-display font-bold text-foreground">JáPaguei</h1>
+        <h1 className="text-xl font-display font-bold text-foreground flex-1">JáPaguei</h1>
+        <GlobalSearch />
+        <NotificationBell />
       </div>
 
       {/* Navigation */}

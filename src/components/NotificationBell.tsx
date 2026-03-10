@@ -26,7 +26,7 @@ const NotificationBell = () => {
   const { data: notifications = [] } = useQuery({
     queryKey: ['in-app-notifications', user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('notifications')
         .select('*')
         .eq('user_id', user!.id)
@@ -43,7 +43,7 @@ const NotificationBell = () => {
 
   const markAllRead = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('notifications')
         .update({ read: true })
         .eq('user_id', user!.id)
@@ -55,7 +55,7 @@ const NotificationBell = () => {
 
   const clearAll = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('notifications')
         .delete()
         .eq('user_id', user!.id);
