@@ -182,7 +182,7 @@ const GroupProfilePanel = ({ open, onClose, group, members, onInvite, onLeaveGro
           <motion.div
             initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-background z-50 overflow-y-auto"
+            className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-background z-50 overflow-y-auto flex flex-col"
           >
             {/* Header */}
             <div className="sticky top-0 bg-background/95 backdrop-blur-sm z-10 px-4 py-3 flex items-center gap-3 border-b border-border">
@@ -409,7 +409,7 @@ const GroupProfilePanel = ({ open, onClose, group, members, onInvite, onLeaveGro
             </div>
 
             {/* Actions */}
-            <div className="px-4 mb-8 space-y-1.5">
+            <div className="px-4 mb-8 space-y-1.5 mt-auto pt-4">
               {!isCreator && (
                 <button onClick={() => setConfirmAction('leave')}
                   className="w-full glass-card p-4 flex items-center gap-3 text-destructive hover:bg-destructive/10 transition-colors rounded-xl">
