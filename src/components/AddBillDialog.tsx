@@ -409,7 +409,7 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
             {pendingFiles.length > 0 && (
               <div className="mt-2 space-y-1.5">
                 {pendingFiles.map((file, i) => {
-                  const preview = getFilePreview(file);
+                  const preview = filePreviewUrls[i];
                   return (
                     <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-secondary/50 border border-border/50">
                       {preview ? (
