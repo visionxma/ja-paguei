@@ -67,7 +67,7 @@ const ProfilePage = () => {
         </motion.div>
       </div>
 
-      <div className="px-4">
+      <div className="px-4 md:px-8">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-5 flex items-center gap-4 mb-6 relative">
           {profile?.avatar_url ? (
             <img src={profile.avatar_url} alt="" className="w-14 h-14 rounded-full object-cover" />

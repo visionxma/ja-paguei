@@ -48,7 +48,7 @@ const FriendsPage = () => {
         </motion.div>
       </div>
 
-      <div className="px-4 space-y-4">
+      <div className="px-4 md:px-8 space-y-4">
         {/* Pending Requests */}
         {pendingReceived.length > 0 && (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>

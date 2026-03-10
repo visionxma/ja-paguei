@@ -58,7 +58,7 @@ const GroupsPage = () => {
         </motion.div>
       </div>
 
-      <div className="px-4 space-y-3">
+      <div className="px-4 md:px-8 space-y-3">
         <button
           onClick={() => setShowCreate(true)}
           className="w-full glass-card p-4 flex items-center justify-center gap-2 text-primary text-sm font-medium hover:bg-primary/10 transition-colors"

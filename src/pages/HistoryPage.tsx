@@ -67,7 +67,7 @@ const HistoryPage = () => {
         )}
       </div>
 
-      <div className="px-4 space-y-3">
+      <div className="px-4 md:px-8 space-y-3">
         {/* Search */}
         <div className="relative">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
