@@ -246,6 +246,23 @@ const GroupDetail = () => {
             <UserPlus size={14} /> Convidar
           </button>
         </div>
+
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mt-4 gradient-primary rounded-2xl p-5">
+          <p className="text-sm text-primary-foreground/70">Total pendente do grupo</p>
+          <p className="text-3xl font-display font-bold text-primary-foreground mt-1">
+            {formatCurrency(totalPending)}
+          </p>
+          <div className="flex items-center gap-4 mt-3">
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-primary-foreground/50" />
+              <span className="text-xs text-primary-foreground/70">{bills.filter(b => b.status === 'pendente').length} pendentes</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-primary-foreground" />
+              <span className="text-xs text-primary-foreground/70">{bills.filter(b => b.status === 'pago').length} pagas</span>
+            </div>
+          </div>
+        </motion.div>
       </div>
 
       <div className="px-4 md:px-8 flex gap-2 mb-4">
