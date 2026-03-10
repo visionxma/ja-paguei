@@ -8,6 +8,8 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   profile: { display_name: string | null; avatar_url: string | null; email: string | null } | null;
+  isPasswordRecovery: boolean;
+  clearPasswordRecovery: () => void;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -17,6 +19,8 @@ const AuthContext = createContext<AuthContextType>({
   session: null,
   loading: true,
   profile: null,
+  isPasswordRecovery: false,
+  clearPasswordRecovery: () => {},
   signOut: async () => {},
   refreshProfile: async () => {},
 });
@@ -28,7 +32,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<AuthContextType['profile']>(null);
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
   const initialSessionChecked = useRef(false);
+
+  const clearPasswordRecovery = useCallback(() => setIsPasswordRecovery(false), []);
 
   const fetchProfile = useCallback(async (userId: string) => {
     const { data } = await supabase
@@ -61,7 +68,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     // Then: listen for auth changes (only process after initial check)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsPasswordRecovery(true);
+      }
       if (!initialSessionChecked.current) return;
       setSession(session);
       setUser(session?.user ?? null);
@@ -80,7 +90,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, profile, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ user, session, loading, profile, isPasswordRecovery, clearPasswordRecovery, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );
