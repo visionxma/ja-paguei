@@ -45,7 +45,7 @@ const BudgetGoals = ({ spendingByCategory }: BudgetGoalsProps) => {
 
   const upsertGoal = useMutation({
     mutationFn: async ({ category, limit }: { category: string; limit: number }) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('budget_goals')
         .upsert({ user_id: user!.id, category, monthly_limit: limit }, { onConflict: 'user_id,category' });
       if (error) throw error;
