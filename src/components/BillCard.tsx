@@ -97,8 +97,17 @@ const BillCard = ({ bill, onToggleStatus, onDelete, onEdit, onOpenAttachments, r
           </button>
         )}
         {onDelete && (
-          <button onClick={() => onDelete(bill.id)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors px-2 py-1 rounded-lg hover:bg-destructive/10 ml-auto">
-            <Trash2 size={12} /> Excluir
+          <button
+            onClick={() => onDelete(bill.id)}
+            disabled={isDeleting}
+            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors px-2 py-1 rounded-lg hover:bg-destructive/10 ml-auto disabled:opacity-50"
+          >
+            {isDeleting ? (
+              <div className="w-3 h-3 border-2 border-destructive border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Trash2 size={12} />
+            )}
+            Excluir
           </button>
         )}
       </div>
