@@ -95,8 +95,8 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
       setStartDate(startVal ? new Date(startVal + 'T12:00:00') : undefined);
       const dateVal = editBill.due_date || editBill.dueDate;
       setDueDate(dateVal ? new Date(dateVal + 'T12:00:00') : undefined);
-      setCategory(editBill.category || 'geral');
-      setRecurrence(editBill.recurrence || 'unica');
+      setCategory((editBill.category as BillCategory) || 'geral');
+      setRecurrence((editBill.recurrence as BillRecurrence) || 'unica');
       setNotes(editBill.notes || '');
       setResponsibleId(editBill.responsible_id || editBill.responsibleId || '');
     } else if (open && !editBill) {
