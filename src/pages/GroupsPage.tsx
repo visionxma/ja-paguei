@@ -37,16 +37,25 @@ const GroupsPage = () => {
     },
   });
 
+  interface GroupDisplay {
+    id: string;
+    name: string;
+    description: string | null;
+    created_at: string;
+    created_by: string;
+    role: string;
+  }
+
   // Deduplicate groups by id
   const groups = groupMemberships
     .filter(gm => gm.groups)
     .reduce((acc, gm) => {
-      const g = gm.groups as any;
+      const g = gm.groups as { id: string; name: string; description: string | null; created_at: string; created_by: string };
       if (!acc.some(x => x.id === g.id)) {
         acc.push({ ...g, role: gm.role });
       }
       return acc;
-    }, [] as any[]);
+    }, [] as GroupDisplay[]);
 
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-8">
