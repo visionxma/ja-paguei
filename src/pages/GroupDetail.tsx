@@ -81,6 +81,8 @@ const GroupDetail = () => {
     },
     enabled: !!id && bills.length > 0,
   });
+
+  const createMutation = useMutation({
     mutationFn: (bill: Parameters<typeof createBill>[0]) => createBill(bill),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['group-bills', id] }); toast.success('Conta criada!'); },
     onError: () => { toast.error('Erro ao criar conta'); },
