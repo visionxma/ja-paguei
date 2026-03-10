@@ -286,9 +286,11 @@ const Dashboard = () => {
             {paidBills.length > 0 && (
               <>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mt-4 mb-2">Pagas ({paidBills.length})</p>
-                {paidBills.map(bill => (
-                  <BillCard key={bill.id} bill={toBillCard(bill) as any} onToggleStatus={toggleStatus} onDelete={handleDelete} onEdit={handleEdit} onOpenAttachments={setAttachBillId} />
-                ))}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                  {paidBills.map(bill => (
+                    <BillCard key={bill.id} bill={toBillCard(bill) as any} onToggleStatus={toggleStatus} onDelete={handleDelete} onEdit={handleEdit} onOpenAttachments={setAttachBillId} />
+                  ))}
+                </div>
               </>
             )}
           </div>
