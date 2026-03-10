@@ -411,7 +411,7 @@ const GroupProfilePanel = ({ open, onClose, group, members, onInvite, onLeaveGro
             </div>
 
             {/* Actions */}
-            <div className="px-4 mb-8 space-y-1.5 mt-auto pt-4">
+            <div className="px-4 pb-24 space-y-1.5 pt-4">
               {!isCreator && (
                 <button onClick={() => setConfirmAction('leave')}
                   className="w-full glass-card p-4 flex items-center gap-3 text-destructive hover:bg-destructive/10 transition-colors rounded-xl">
