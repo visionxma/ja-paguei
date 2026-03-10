@@ -12,6 +12,7 @@ import { useFormat } from '@/contexts/FormatContext';
 import { fetchPersonalBills, createBill, updateBill, updateBillStatus, deleteBill, uploadAttachment } from '@/lib/api';
 import { toBillCard, buildMonthlyData, type BillRow } from '@/lib/bill-utils';
 import { Bill } from '@/types/finance';
+import { useBillDueNotifications } from '@/hooks/useNotifications';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -36,6 +37,9 @@ const Dashboard = () => {
   const [selectedCategory, setSelectedCategory] = useState('todas');
   const [periodFilter, setPeriodFilter] = useState('todos');
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
+  // Trigger browser notifications for bills near due date
+  useBillDueNotifications();
 
   const { data: bills = [], isLoading } = useQuery({
     queryKey: ['personal-bills', user?.id],
