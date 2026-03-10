@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { format } from 'date-fns';
-import { CalendarIcon, Paperclip, Upload, Camera, X, FileText, Image as ImageIcon } from 'lucide-react';
+import { CalendarIcon, Paperclip, Upload, Camera, X, FileText, Image as ImageIcon, AlertCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
