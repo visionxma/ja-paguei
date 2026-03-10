@@ -32,7 +32,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<AuthContextType['profile']>(null);
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
   const initialSessionChecked = useRef(false);
+
+  const clearPasswordRecovery = useCallback(() => setIsPasswordRecovery(false), []);
 
   const fetchProfile = useCallback(async (userId: string) => {
     const { data } = await supabase
