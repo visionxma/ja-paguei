@@ -117,9 +117,12 @@ const GroupProfilePanel = ({ open, onClose, group, members, onInvite, onLeaveGro
     try {
       const { error } = await supabase.from('group_members').delete().eq('id', targetMember.id);
       if (error) throw error;
-      queryClient.invalidateQueries({ queryKey: ['group-members', group.id] });
+      await queryClient.invalidateQueries({ queryKey: ['group-members', group.id] });
       toast.success('Membro removido!');
-    } catch { toast.error('Erro ao remover membro'); }
+    } catch (err) {
+      console.error('[GroupProfilePanel] remove member error:', err);
+      toast.error('Erro ao remover membro');
+    }
     setTargetMember(null);
     setConfirmAction(null);
   };
