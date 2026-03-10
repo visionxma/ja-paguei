@@ -35,7 +35,7 @@ const SettingsPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background pb-24 px-4 pt-6 space-y-4">
+      <div className="min-h-screen bg-background pb-24 md:pb-8 px-4 md:px-8 pt-6 space-y-4">
         <Skeleton className="h-8 w-40" />
         <Skeleton className="h-36 w-full rounded-xl" />
         <Skeleton className="h-36 w-full rounded-xl" />
