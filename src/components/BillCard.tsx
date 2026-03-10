@@ -10,6 +10,8 @@ interface BillCardProps {
   onEdit?: (bill: any) => void;
   onOpenAttachments?: (billId: string) => void;
   responsibleName?: string;
+  isToggling?: boolean;
+  isDeleting?: boolean;
 }
 
 const BillCard = ({ bill, onToggleStatus, onDelete, onEdit, onOpenAttachments, responsibleName }: BillCardProps) => {
