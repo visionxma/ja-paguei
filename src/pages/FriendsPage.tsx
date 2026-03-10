@@ -34,8 +34,8 @@ const FriendsPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <div className="px-4 pt-6 pb-4">
+    <div className="min-h-screen bg-background pb-24 md:pb-8">
+      <div className="px-4 md:px-8 pt-6 pb-4">
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
           <h1 className="text-2xl font-display font-bold">Amigos</h1>
           <button
