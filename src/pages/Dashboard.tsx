@@ -28,7 +28,7 @@ import {
 
 const Dashboard = () => {
   const { user, profile } = useAuth();
-  const { formatCurrency } = useFormat();
+  const { formatCurrency, formatDate } = useFormat();
   const queryClient = useQueryClient();
   const [showAddBill, setShowAddBill] = useState(false);
   const [editBill, setEditBill] = useState<ReturnType<typeof toBillCard> | null>(null);
