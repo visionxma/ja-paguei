@@ -144,25 +144,37 @@ const Dashboard = () => {
     if (selectedCategory !== 'todas') {
       result = result.filter(b => b.category === selectedCategory);
     }
-    if (periodFilter === 'mes') {
+    if (periodFilter !== 'todos') {
       const now = new Date();
-      result = result.filter(b => {
-        if (!b.due_date) return true;
-        const d = new Date(b.due_date);
-        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-      });
-    } else if (periodFilter === 'semana') {
-      const now = new Date();
-      const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      const weekAhead = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      const today = startOfDay(now);
+      const tomorrow = new Date(today.getTime() + 86400000);
+      const dayOfWeek = today.getDay(); // 0=Sun
+      const thisWeekStart = new Date(today.getTime() - dayOfWeek * 86400000);
+      const thisWeekEnd = new Date(thisWeekStart.getTime() + 7 * 86400000);
+      const lastWeekStart = new Date(thisWeekStart.getTime() - 7 * 86400000);
+      const twoWeeksAgoStart = new Date(thisWeekStart.getTime() - 14 * 86400000);
+      const thisMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+      const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0, 23, 59, 59);
+
       result = result.filter(b => {
         if (!b.due_date) return false;
-        const d = new Date(b.due_date);
-        return d >= weekAgo && d <= weekAhead;
+        const d = startOfDay(new Date(b.due_date));
+        switch (periodFilter) {
+          case 'hoje': return d.getTime() === today.getTime();
+          case 'amanha': return d.getTime() === tomorrow.getTime();
+          case 'semana': return d >= thisWeekStart && d < thisWeekEnd;
+          case 'semana_passada': return d >= lastWeekStart && d < thisWeekStart;
+          case 'semana_retrasada': return d >= twoWeeksAgoStart && d < lastWeekStart;
+          case 'mes': return d >= thisMonthStart;
+          case 'mes_passado': return d >= lastMonthStart && d <= lastMonthEnd;
+          case 'proximos_7': return d >= today && d < new Date(today.getTime() + 7 * 86400000);
+          case 'proximos_30': return d >= today && d < new Date(today.getTime() + 30 * 86400000);
+          case 'atrasados': return b.status === 'pendente' && d < today;
+          default: return true;
+        }
       });
-    } else if (periodFilter === 'atrasados') {
-      const now = new Date();
-      result = result.filter(b => b.status === 'pendente' && b.due_date && new Date(b.due_date) < now);
     }
     return result;
   }, [bills, searchQuery, selectedCategory, periodFilter]);
