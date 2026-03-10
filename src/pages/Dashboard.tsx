@@ -204,8 +204,8 @@ const Dashboard = () => {
   const billsForChart = bills.map(b => toBillCard(b)) as any;
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <div className="px-4 pt-6 pb-4">
+    <div className="min-h-screen bg-background pb-24 md:pb-8">
+      <div className="px-4 md:px-8 pt-6 pb-4">
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
           <p className="text-sm text-muted-foreground">Olá, {profile?.display_name || 'Usuário'} 👋</p>
           <h1 className="text-2xl font-display font-bold mt-1">Minhas Contas</h1>
@@ -247,7 +247,7 @@ const Dashboard = () => {
         </motion.div>
       </div>
 
-      <div className="px-4 flex gap-2 mb-4">
+      <div className="px-4 md:px-8 flex gap-2 mb-4">
         {(['contas', 'graficos'] as const).map(tab => (
           <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${activeTab === tab ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}>
             {tab === 'contas' ? 'Contas' : 'Gráficos'}
@@ -255,7 +255,7 @@ const Dashboard = () => {
         ))}
       </div>
 
-      <div className="px-4">
+      <div className="px-4 md:px-8">
         {isLoading ? (
           <div className="flex justify-center py-8"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
         ) : activeTab === 'contas' ? (
@@ -275,18 +275,22 @@ const Dashboard = () => {
             {pendingBills.length > 0 && (
               <>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mt-4 mb-2">Pendentes ({pendingBills.length})</p>
-                {pendingBills.map(bill => (
-                  <BillCard key={bill.id} bill={toBillCard(bill) as any} onToggleStatus={toggleStatus} onDelete={handleDelete} onEdit={handleEdit} onOpenAttachments={setAttachBillId} />
-                ))}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                  {pendingBills.map(bill => (
+                    <BillCard key={bill.id} bill={toBillCard(bill) as any} onToggleStatus={toggleStatus} onDelete={handleDelete} onEdit={handleEdit} onOpenAttachments={setAttachBillId} />
+                  ))}
+                </div>
               </>
             )}
 
             {paidBills.length > 0 && (
               <>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mt-4 mb-2">Pagas ({paidBills.length})</p>
-                {paidBills.map(bill => (
-                  <BillCard key={bill.id} bill={toBillCard(bill) as any} onToggleStatus={toggleStatus} onDelete={handleDelete} onEdit={handleEdit} onOpenAttachments={setAttachBillId} />
-                ))}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                  {paidBills.map(bill => (
+                    <BillCard key={bill.id} bill={toBillCard(bill) as any} onToggleStatus={toggleStatus} onDelete={handleDelete} onEdit={handleEdit} onOpenAttachments={setAttachBillId} />
+                  ))}
+                </div>
               </>
             )}
           </div>

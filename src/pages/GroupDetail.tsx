@@ -212,8 +212,8 @@ const GroupDetail = () => {
   })();
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <div className="px-4 pt-6 pb-4">
+    <div className="min-h-screen bg-background pb-24 md:pb-8">
+      <div className="px-4 md:px-8 pt-6 pb-4">
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
           <button onClick={() => navigate('/groups')} className="flex items-center gap-1 text-muted-foreground text-sm mb-3 hover:text-foreground transition-colors">
             <ArrowLeft size={16} /> Voltar
@@ -248,7 +248,7 @@ const GroupDetail = () => {
         </div>
       </div>
 
-      <div className="px-4 flex gap-2 mb-4">
+      <div className="px-4 md:px-8 flex gap-2 mb-4">
         {(['contas', 'graficos'] as const).map(tab => (
           <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${activeTab === tab ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}>
             {tab === 'contas' ? 'Contas' : 'Gráficos'}
@@ -256,7 +256,7 @@ const GroupDetail = () => {
         ))}
       </div>
 
-      <div className="px-4">
+      <div className="px-4 md:px-8">
         {loadingBills ? (
           <div className="flex justify-center py-8"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
         ) : activeTab === 'contas' ? (

@@ -10,6 +10,7 @@ import { NavigationGuardProvider } from "@/contexts/NavigationGuardContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import BottomNav from "@/components/BottomNav";
 import Header from "@/components/Header";
+import DesktopSidebar from "@/components/DesktopSidebar";
 import ScrollToTop from "@/components/ScrollToTop";
 import UpdatePrompt from "@/components/UpdatePrompt";
 import Dashboard from "./pages/Dashboard";
@@ -49,27 +50,30 @@ const AppRoutes = () => {
   if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>;
 
   return (
-    <div className="max-w-lg mx-auto relative">
+    <div className="relative">
       <ScrollToTop />
-      {user && <Header />}
-      <div className={user ? 'pt-14' : ''}>
-        <Routes>
-          <Route path="/login" element={user ? <LoginRedirect /> : <LoginPage />} />
-          <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/groups" element={<ProtectedRoute><GroupsPage /></ProtectedRoute>} />
-          <Route path="/groups/:id" element={<ProtectedRoute><GroupDetail /></ProtectedRoute>} />
-          <Route path="/history" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
-          <Route path="/friends" element={<ProtectedRoute><FriendsPage /></ProtectedRoute>} />
-          <Route path="/add-friend" element={<ProtectedRoute><AddFriendPage /></ProtectedRoute>} />
-          <Route path="/scan-friend" element={<ProtectedRoute><ScanFriendPage /></ProtectedRoute>} />
-          <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-          <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
-          <Route path="/security" element={<ProtectedRoute><SecurityPage /></ProtectedRoute>} />
-          <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+      {user && <DesktopSidebar />}
+      <div className={user ? 'md:ml-64' : ''}>
+        {user && <Header />}
+        <div className={`max-w-4xl mx-auto ${user ? 'pt-14 md:pt-0' : ''}`}>
+          <Routes>
+            <Route path="/login" element={user ? <LoginRedirect /> : <LoginPage />} />
+            <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/groups" element={<ProtectedRoute><GroupsPage /></ProtectedRoute>} />
+            <Route path="/groups/:id" element={<ProtectedRoute><GroupDetail /></ProtectedRoute>} />
+            <Route path="/history" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
+            <Route path="/friends" element={<ProtectedRoute><FriendsPage /></ProtectedRoute>} />
+            <Route path="/add-friend" element={<ProtectedRoute><AddFriendPage /></ProtectedRoute>} />
+            <Route path="/scan-friend" element={<ProtectedRoute><ScanFriendPage /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+            <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+            <Route path="/security" element={<ProtectedRoute><SecurityPage /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </div>
+        {user && <BottomNav />}
       </div>
-      {user && <BottomNav />}
       <UpdatePrompt />
     </div>
   );

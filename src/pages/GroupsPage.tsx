@@ -50,15 +50,15 @@ const GroupsPage = () => {
     }, [] as any[]);
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <div className="px-4 pt-6 pb-4">
+    <div className="min-h-screen bg-background pb-24 md:pb-8">
+      <div className="px-4 md:px-8 pt-6 pb-4">
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="text-2xl font-display font-bold">Grupos</h1>
           <p className="text-sm text-muted-foreground mt-1">Gerencie contas compartilhadas</p>
         </motion.div>
       </div>
 
-      <div className="px-4 space-y-3">
+      <div className="px-4 md:px-8 space-y-3">
         <button
           onClick={() => setShowCreate(true)}
           className="w-full glass-card p-4 flex items-center justify-center gap-2 text-primary text-sm font-medium hover:bg-primary/10 transition-colors"
