@@ -376,7 +376,7 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
                 <option value="">Nenhum</option>
                 {members.map((m) => (
                   <option key={m.user_id} value={m.user_id}>
-                    {(m.profiles as any)?.display_name || 'Membro'}
+                    {m.profiles?.display_name || 'Membro'}
                   </option>
                 ))}
               </select>

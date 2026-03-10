@@ -124,6 +124,7 @@ const GroupsPage = () => {
                 onChange={e => setNewName(e.target.value.slice(0, 100))}
                 placeholder="Ex: Apartamento Centro"
                 className="bg-secondary border-border text-foreground"
+                maxLength={100}
               />
               {newName.length >= 90 && (
                 <p className="text-xs text-muted-foreground mt-1">{newName.length}/100 caracteres</p>
@@ -136,12 +137,21 @@ const GroupsPage = () => {
                 onChange={e => setNewDesc(e.target.value.slice(0, 300))}
                 placeholder="Ex: Contas do apê"
                 className="bg-secondary border-border text-foreground"
+                maxLength={300}
               />
+              {newDesc.length >= 280 && (
+                <p className="text-xs text-muted-foreground mt-1">{newDesc.length}/300 caracteres</p>
+              )}
             </div>
             <button
               onClick={() => {
-                if (!newName.trim()) {
+                const trimmed = newName.trim();
+                if (!trimmed) {
                   import('sonner').then(({ toast }) => toast.error('Nome do grupo é obrigatório'));
+                  return;
+                }
+                if (trimmed.length < 2) {
+                  import('sonner').then(({ toast }) => toast.error('Nome do grupo deve ter pelo menos 2 caracteres'));
                   return;
                 }
                 createMutation.mutate();

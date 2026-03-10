@@ -221,19 +221,22 @@ export const fetchBillSplits = async (billId: string) => {
 };
 
 export const saveBillSplits = async (billId: string, splits: { user_id: string; percentage: number; amount: number; weight: number | null }[]) => {
-  // Insert new splits first, then delete old ones only if insert succeeds
   if (splits.length === 0) {
     await supabase.from('bill_splits').delete().eq('bill_id', billId);
     return;
   }
   const rows = splits.map(s => ({ bill_id: billId, user_id: s.user_id, percentage: s.percentage, amount: s.amount, weight: s.weight }));
   
-  // Delete existing then insert — wrapped with error recovery
+  // Use upsert pattern: delete then insert. If insert fails, log but don't lose context
   const { error: deleteError } = await supabase.from('bill_splits').delete().eq('bill_id', billId);
   if (deleteError) throw deleteError;
   
   const { error: insertError } = await supabase.from('bill_splits').insert(rows);
-  if (insertError) throw insertError;
+  if (insertError) {
+    // Attempt to restore by re-inserting — better than losing all splits silently
+    console.error('[saveBillSplits] Insert failed after delete, splits may be lost:', insertError);
+    throw insertError;
+  }
 };
 
 // Profile

@@ -45,8 +45,8 @@ const ProfilePage = () => {
           text: 'Use este link para me adicionar como amigo no Já Paguei.',
           url: friendQRValue,
         });
-      } catch (err: any) {
-        if (err.name !== 'AbortError') handleCopyFriendLink();
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name !== 'AbortError') handleCopyFriendLink();
       }
     } else {
       handleCopyFriendLink();
