@@ -427,6 +427,7 @@ const GroupProfilePanel = ({ open, onClose, group, members, onInvite, onLeaveGro
                 </button>
               )}
             </div>
+            </div>{/* end scrollable area */}
 
             {/* Confirm Dialog */}
             <AlertDialog open={!!confirmAction} onOpenChange={open => { if (!open) { setConfirmAction(null); setTargetMember(null); } }}>
