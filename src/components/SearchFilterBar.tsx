@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, X } from 'lucide-react';
+import { Search, X, FilterX } from 'lucide-react';
 import { BillCategory, CATEGORY_LABELS } from '@/types/finance';
 import { useDebounce } from '@/hooks/useDebounce';
 
@@ -13,6 +13,20 @@ interface SearchFilterBarProps {
 }
 
 const categories: (BillCategory | 'todas')[] = ['todas', 'geral', 'aluguel', 'energia', 'agua', 'internet', 'mercado', 'limpeza', 'outro'];
+
+const periodOptions = [
+  { value: 'todos', label: 'Todos' },
+  { value: 'hoje', label: 'Hoje' },
+  { value: 'amanha', label: 'Amanhã' },
+  { value: 'semana', label: 'Esta semana' },
+  { value: 'semana_passada', label: 'Semana passada' },
+  { value: 'semana_retrasada', label: 'Semana retrasada' },
+  { value: 'mes', label: 'Este mês' },
+  { value: 'mes_passado', label: 'Mês passado' },
+  { value: 'proximos_7', label: 'Próximos 7 dias' },
+  { value: 'proximos_30', label: 'Próximos 30 dias' },
+  { value: 'atrasados', label: 'Atrasados' },
+];
 
 const SearchFilterBar = ({
   searchQuery,
@@ -29,10 +43,18 @@ const SearchFilterBar = ({
     onSearchChange(debouncedSearch);
   }, [debouncedSearch, onSearchChange]);
 
-  // Sync external changes
   useEffect(() => {
     setLocalSearch(searchQuery);
   }, [searchQuery]);
+
+  const hasActiveFilters = searchQuery || selectedCategory !== 'todas' || periodFilter !== 'todos';
+
+  const clearAllFilters = () => {
+    setLocalSearch('');
+    onSearchChange('');
+    onCategoryChange('todas');
+    onPeriodChange('todos');
+  };
 
   return (
     <div className="space-y-3">
@@ -52,13 +74,18 @@ const SearchFilterBar = ({
         )}
       </div>
 
+      {hasActiveFilters && (
+        <button
+          onClick={clearAllFilters}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-destructive/10 text-destructive border border-destructive/30 hover:bg-destructive/20 transition-all"
+        >
+          <FilterX size={12} />
+          Limpar filtros
+        </button>
+      )}
+
       <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-        {[
-          { value: 'todos', label: 'Todos' },
-          { value: 'mes', label: 'Este mês' },
-          { value: 'semana', label: 'Esta semana' },
-          { value: 'atrasados', label: 'Atrasados' },
-        ].map((p) => (
+        {periodOptions.map((p) => (
           <button
             key={p.value}
             onClick={() => onPeriodChange(p.value)}
