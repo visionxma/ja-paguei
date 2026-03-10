@@ -16,7 +16,7 @@ const BottomNav = () => {
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-xl border-t border-border safe-bottom md:hidden">
       <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-2">
         {navItems.map(({ to, icon: Icon, label }) => {
-          const isActive = location.pathname === to;
+          const isActive = to === '/' ? location.pathname === '/' : location.pathname.startsWith(to);
           return (
             <NavLink
               key={to}

@@ -12,14 +12,40 @@ import { cn } from '@/lib/utils';
 import { BillCategory, BillRecurrence, CATEGORY_LABELS, Bill } from '@/types/finance';
 import BillSplitSection, { SplitEntry } from '@/components/BillSplitSection';
 
+interface BillUpdates {
+  description?: string;
+  amount?: number;
+  start_date?: string | null;
+  due_date?: string | null;
+  category?: string;
+  recurrence?: string;
+  notes?: string | null;
+  responsible_id?: string | null;
+}
+
+interface EditableBill {
+  id: string;
+  description: string;
+  amount: number;
+  start_date?: string;
+  startDate?: string;
+  due_date?: string;
+  dueDate?: string;
+  category?: string;
+  recurrence?: string;
+  notes?: string;
+  responsible_id?: string;
+  responsibleId?: string;
+}
+
 interface AddBillDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAdd: (bill: Omit<Bill, 'id' | 'createdAt'>, splits?: SplitEntry[], pendingFiles?: File[]) => void;
   isGroup?: boolean;
   members?: { user_id: string; profiles: { display_name: string | null } | null }[];
-  editBill?: any;
-  onEdit?: (id: string, updates: any, splits?: SplitEntry[]) => void;
+  editBill?: EditableBill | null;
+  onEdit?: (id: string, updates: BillUpdates, splits?: SplitEntry[]) => void;
   onOpenAttachments?: (billId: string) => void;
   existingSplits?: SplitEntry[];
 }
@@ -69,8 +95,8 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
       setStartDate(startVal ? new Date(startVal + 'T12:00:00') : undefined);
       const dateVal = editBill.due_date || editBill.dueDate;
       setDueDate(dateVal ? new Date(dateVal + 'T12:00:00') : undefined);
-      setCategory(editBill.category || 'geral');
-      setRecurrence(editBill.recurrence || 'unica');
+      setCategory((editBill.category as BillCategory) || 'geral');
+      setRecurrence((editBill.recurrence as BillRecurrence) || 'unica');
       setNotes(editBill.notes || '');
       setResponsibleId(editBill.responsible_id || editBill.responsibleId || '');
     } else if (open && !editBill) {
@@ -350,7 +376,7 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
                 <option value="">Nenhum</option>
                 {members.map((m) => (
                   <option key={m.user_id} value={m.user_id}>
-                    {(m.profiles as any)?.display_name || 'Membro'}
+                    {m.profiles?.display_name || 'Membro'}
                   </option>
                 ))}
               </select>
