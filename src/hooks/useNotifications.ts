@@ -63,7 +63,6 @@ function showBillNotification(bill: DueBill) {
         body,
         icon: '/pwa-icon-192.png',
         tag,
-        renotify: false,
       });
     });
   }
