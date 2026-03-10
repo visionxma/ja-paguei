@@ -14,6 +14,7 @@ import { toBillCard, buildMonthlyData, type BillRow } from '@/lib/bill-utils';
 import { Bill } from '@/types/finance';
 import { useBillDueNotifications, useNotificationPermission } from '@/hooks/useNotifications';
 import { toast } from 'sonner';
+import { generateReportPDF } from '@/lib/generate-report-pdf';
 import {
   AlertDialog,
   AlertDialogContent,
