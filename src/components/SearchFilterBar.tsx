@@ -88,7 +88,7 @@ const SearchFilterBar = ({
         {periodOptions.map((p) => (
           <button
             key={p.value}
-            onClick={() => onPeriodChange(p.value)}
+            onClick={() => onPeriodChange(periodFilter === p.value && p.value !== 'todos' ? 'todos' : p.value)}
             className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
               periodFilter === p.value
                 ? 'bg-primary text-primary-foreground'
