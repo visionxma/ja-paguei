@@ -38,6 +38,14 @@ const Dashboard = () => {
   const [periodFilter, setPeriodFilter] = useState('todos');
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
+  // Auto-request notification permission on first visit
+  const { permission, requestPermission } = useNotificationPermission();
+  useEffect(() => {
+    if (permission === 'default') {
+      requestPermission();
+    }
+  }, [permission, requestPermission]);
+
   // Trigger browser notifications for bills near due date
   useBillDueNotifications();
 
