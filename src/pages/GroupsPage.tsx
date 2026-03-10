@@ -31,9 +31,8 @@ const GroupsPage = () => {
       setNewDesc('');
       setShowCreate(false);
     },
-    onError: (error: any) => {
-      console.error('Error creating group:', JSON.stringify(error, null, 2));
-      console.error('Error details:', error?.code, error?.details, error?.hint);
+    onError: (error: Error) => {
+      console.error('Error creating group:', error);
       import('sonner').then(({ toast }) => toast.error('Erro ao criar grupo: ' + (error?.message || 'Tente novamente')));
     },
   });
