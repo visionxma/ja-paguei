@@ -11,7 +11,9 @@ import AddBillDialog from '@/components/AddBillDialog';
 import AttachmentsDialog from '@/components/AttachmentsDialog';
 import InviteMemberDialog from '@/components/InviteMemberDialog';
 import SearchFilterBar from '@/components/SearchFilterBar';
+import UserAvatar from '@/components/UserAvatar';
 import { Bill } from '@/types/finance';
+import { toBillCard, buildMonthlyData } from '@/lib/bill-utils';
 import { SplitEntry } from '@/components/BillSplitSection';
 import { toast } from 'sonner';
 import {
@@ -31,7 +33,7 @@ const GroupDetail = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [showAddBill, setShowAddBill] = useState(false);
-  const [editBill, setEditBill] = useState<any>(null);
+  const [editBill, setEditBill] = useState<ReturnType<typeof toBillCard> | null>(null);
   const [attachBillId, setAttachBillId] = useState<string | null>(null);
   const [showInvite, setShowInvite] = useState(false);
   const [activeTab, setActiveTab] = useState<'contas' | 'graficos'>('contas');
@@ -65,7 +67,7 @@ const GroupDetail = () => {
   });
 
   const editMutation = useMutation({
-    mutationFn: ({ billId, updates }: { billId: string; updates: any }) => updateBill(billId, updates),
+    mutationFn: ({ billId, updates }: { billId: string; updates: Parameters<typeof updateBill>[1] }) => updateBill(billId, updates),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['group-bills', id] }); toast.success('Conta atualizada!'); },
     onError: () => { toast.error('Erro ao atualizar conta'); },
   });
@@ -90,9 +92,7 @@ const GroupDetail = () => {
     toggleMutation.mutate({ billId, status: newStatus, paidAt: newStatus === 'pago' ? new Date().toISOString() : null });
   };
 
-  const handleDelete = (billId: string) => {
-    setDeleteConfirmId(billId);
-  };
+  const handleDelete = (billId: string) => setDeleteConfirmId(billId);
 
   const confirmDelete = () => {
     if (deleteConfirmId) {
@@ -102,7 +102,7 @@ const GroupDetail = () => {
   };
 
   const [editSplits, setEditSplits] = useState<SplitEntry[]>([]);
-  const handleEdit = async (bill: any) => {
+  const handleEdit = async (bill: ReturnType<typeof toBillCard>) => {
     setEditBill(bill);
     try {
       const splits = await fetchBillSplits(bill.id);
@@ -112,7 +112,8 @@ const GroupDetail = () => {
     }
     setShowAddBill(true);
   };
-  const handleEditSubmit = async (billId: string, updates: any, splits?: SplitEntry[]) => {
+
+  const handleEditSubmit = async (billId: string, updates: Parameters<typeof updateBill>[1], splits?: SplitEntry[]) => {
     try {
       await editMutation.mutateAsync({ billId, updates });
       if (splits) await saveBillSplits(billId, splits);
@@ -159,7 +160,7 @@ const GroupDetail = () => {
   const getMemberName = (userId?: string) => {
     if (!userId) return undefined;
     const m = members.find(m => m.user_id === userId);
-    return (m as any)?.profiles?.display_name || undefined;
+    return (m as { profiles?: { display_name?: string } })?.profiles?.display_name || undefined;
   };
 
   // Filter bills
@@ -180,25 +181,7 @@ const GroupDetail = () => {
   }, [bills, searchQuery, selectedCategory, periodFilter]);
 
   // Build real monthly data (memoized) - must be before early returns
-  const monthlyData = useMemo(() => {
-    const monthMap = new Map<string, { month: string; total: number; paid: number; pending: number }>();
-    bills.forEach(b => {
-      const dateStr = b.due_date || b.created_at;
-      if (!dateStr) return;
-      const d = new Date(dateStr);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      const label = d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
-      if (!monthMap.has(key)) {
-        monthMap.set(key, { month: label.charAt(0).toUpperCase() + label.slice(1), total: 0, paid: 0, pending: 0 });
-      }
-      const entry = monthMap.get(key)!;
-      const amount = Number(b.amount);
-      entry.total += amount;
-      if (b.status === 'pago') entry.paid += amount;
-      else entry.pending += amount;
-    });
-    return Array.from(monthMap.entries()).sort(([a], [b]) => a.localeCompare(b)).map(([, v]) => v);
-  }, [bills]);
+  const monthlyData = useMemo(() => buildMonthlyData(bills), [bills]);
 
   if (loadingGroup) return <div className="min-h-screen bg-background flex items-center justify-center"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>;
   if (!group) return <div className="min-h-screen bg-background flex items-center justify-center"><p className="text-muted-foreground">Grupo não encontrado</p></div>;
@@ -206,11 +189,8 @@ const GroupDetail = () => {
   const pendingBills = filteredBills.filter(b => b.status === 'pendente');
   const paidBills = filteredBills.filter(b => b.status === 'pago');
   const overdueBills = bills.filter(b => b.status === 'pendente' && b.due_date && new Date(b.due_date) < new Date());
-
-  const toBillCard = (bill: any) => ({ ...bill, dueDate: bill.due_date || undefined, paidAt: bill.paid_at || undefined, createdAt: bill.created_at });
-  const billsForChart = bills.map(toBillCard) as any;
+  const billsForChart = bills.map(toBillCard);
   const totalPending = pendingBills.reduce((s, b) => s + Number(b.amount), 0);
-
 
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-8">
@@ -232,15 +212,18 @@ const GroupDetail = () => {
 
         <div className="flex items-center gap-3 mt-4">
           <div className="flex -space-x-2">
-            {members.slice(0, 5).map((m) => (
-              <div key={m.id} className="w-8 h-8 rounded-full bg-secondary border-2 border-background flex items-center justify-center text-xs font-medium overflow-hidden">
-                {(m as any).profiles?.avatar_url ? (
-                  <img src={(m as any).profiles.avatar_url} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  ((m as any).profiles?.display_name || '?').slice(0, 2).toUpperCase()
-                )}
-              </div>
-            ))}
+            {members.slice(0, 5).map((m) => {
+              const profile = m as { id: string; profiles?: { avatar_url?: string; display_name?: string } };
+              return (
+                <div key={m.id} className="border-2 border-background rounded-full">
+                  <UserAvatar
+                    url={profile.profiles?.avatar_url || null}
+                    name={profile.profiles?.display_name || null}
+                    size="sm"
+                  />
+                </div>
+              );
+            })}
           </div>
           <span className="text-xs text-muted-foreground">{members.length} membros</span>
           <button onClick={() => setShowInvite(true)} className="ml-auto flex items-center gap-1 text-primary text-xs font-medium hover:underline">
@@ -274,13 +257,13 @@ const GroupDetail = () => {
             {pendingBills.length > 0 && (
               <>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mt-4 mb-2">Pendentes ({pendingBills.length})</p>
-                {pendingBills.map(bill => <BillCard key={bill.id} bill={toBillCard(bill) as any} onToggleStatus={toggleStatus} onDelete={handleDelete} onEdit={handleEdit} onOpenAttachments={setAttachBillId} responsibleName={getMemberName(bill.responsible_id || undefined)} />)}
+                {pendingBills.map(bill => <BillCard key={bill.id} bill={toBillCard(bill)} onToggleStatus={toggleStatus} onDelete={handleDelete} onEdit={handleEdit} onOpenAttachments={setAttachBillId} responsibleName={getMemberName(bill.responsible_id || undefined)} />)}
               </>
             )}
             {paidBills.length > 0 && (
               <>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mt-4 mb-2">Pagas ({paidBills.length})</p>
-                {paidBills.map(bill => <BillCard key={bill.id} bill={toBillCard(bill) as any} onToggleStatus={toggleStatus} onDelete={handleDelete} onEdit={handleEdit} onOpenAttachments={setAttachBillId} responsibleName={getMemberName(bill.responsible_id || undefined)} />)}
+                {paidBills.map(bill => <BillCard key={bill.id} bill={toBillCard(bill)} onToggleStatus={toggleStatus} onDelete={handleDelete} onEdit={handleEdit} onOpenAttachments={setAttachBillId} responsibleName={getMemberName(bill.responsible_id || undefined)} />)}
               </>
             )}
           </div>
@@ -296,7 +279,7 @@ const GroupDetail = () => {
         editBill={editBill}
         onEdit={handleEditSubmit}
         isGroup
-        members={members as any}
+        members={members as unknown as { user_id: string; profiles: { display_name: string | null } | null }[]}
         existingSplits={editSplits}
       />
 
@@ -306,7 +289,6 @@ const GroupDetail = () => {
 
       <InviteMemberDialog open={showInvite} onOpenChange={setShowInvite} groupId={id!} existingMemberIds={members.map(m => m.user_id)} />
 
-      {/* Delete confirmation dialog */}
       <AlertDialog open={!!deleteConfirmId} onOpenChange={(open) => { if (!open) setDeleteConfirmId(null); }}>
         <AlertDialogContent className="bg-card border-border text-foreground max-w-sm mx-auto">
           <AlertDialogHeader>

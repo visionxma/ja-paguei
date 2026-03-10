@@ -6,6 +6,7 @@ import { formatUserName } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import UserAvatar from '@/components/UserAvatar';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -57,16 +58,6 @@ const FriendsPage = () => {
     setRemoveConfirmId(null);
   };
 
-  const Avatar = ({ url, name }: { url: string | null; name: string | null }) => (
-    url ? (
-      <img src={url} alt="" className="w-10 h-10 rounded-full object-cover" />
-    ) : (
-      <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center text-primary-foreground text-sm font-bold">
-        {(name || '?')[0]?.toUpperCase()}
-      </div>
-    )
-  );
-
   const removeFriendName = removeConfirmId
     ? formatUserName(friends.find(f => f.id === removeConfirmId)?.display_name) || 'este amigo'
     : '';
@@ -87,7 +78,6 @@ const FriendsPage = () => {
       </div>
 
       <div className="px-4 md:px-8 space-y-4">
-        {/* Pending Requests */}
         {pendingReceived.length > 0 && (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
             <h2 className="text-sm font-semibold text-muted-foreground mb-2 flex items-center gap-1.5">
@@ -96,7 +86,7 @@ const FriendsPage = () => {
             <div className="space-y-2">
               {pendingReceived.map(req => (
                 <div key={req.id} className="glass-card p-3 flex items-center gap-3">
-                  <Avatar url={req.avatar_url} name={req.display_name} />
+                  <UserAvatar url={req.avatar_url} name={req.display_name} />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{formatUserName(req.display_name) || req.email || 'Usuário'}</p>
                   </div>
@@ -130,7 +120,6 @@ const FriendsPage = () => {
           </motion.div>
         )}
 
-        {/* Add Friend Section */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
           <h2 className="text-sm font-semibold text-muted-foreground mb-2 flex items-center gap-1.5">
             <UserPlus size={14} /> Adicionar amigo
@@ -170,14 +159,13 @@ const FriendsPage = () => {
           </div>
         </motion.div>
 
-        {/* Pending Sent */}
         {pendingSent.length > 0 && (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
             <h2 className="text-sm font-semibold text-muted-foreground mb-2">Enviadas ({pendingSent.length})</h2>
             <div className="space-y-2">
               {pendingSent.map(req => (
                 <div key={req.id} className="glass-card p-3 flex items-center gap-3 opacity-70">
-                  <Avatar url={req.avatar_url} name={req.display_name} />
+                  <UserAvatar url={req.avatar_url} name={req.display_name} />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{formatUserName(req.display_name) || req.email || 'Usuário'}</p>
                     <p className="text-xs text-muted-foreground">Aguardando resposta</p>
@@ -188,7 +176,6 @@ const FriendsPage = () => {
           </motion.div>
         )}
 
-        {/* Friends List */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
           <h2 className="text-sm font-semibold text-muted-foreground mb-2 flex items-center gap-1.5">
             <Users size={14} /> Meus amigos ({friends.length})
@@ -205,7 +192,7 @@ const FriendsPage = () => {
             <div className="space-y-2">
               {friends.map(friend => (
                 <div key={friend.id} className="glass-card p-3 flex items-center gap-3">
-                  <Avatar url={friend.avatar_url} name={friend.display_name} />
+                  <UserAvatar url={friend.avatar_url} name={friend.display_name} />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{formatUserName(friend.display_name) || friend.email || 'Usuário'}</p>
                     <p className="text-xs text-muted-foreground truncate">{friend.email}</p>
@@ -229,7 +216,6 @@ const FriendsPage = () => {
         </motion.div>
       </div>
 
-      {/* Remove friend confirmation */}
       <AlertDialog open={!!removeConfirmId} onOpenChange={(open) => { if (!open) setRemoveConfirmId(null); }}>
         <AlertDialogContent className="bg-card border-border text-foreground max-w-sm mx-auto">
           <AlertDialogHeader>

@@ -22,6 +22,10 @@ const SecurityPage = () => {
       toast.error('A senha deve ter pelo menos 6 caracteres');
       return;
     }
+    if (newPassword.length > 128) {
+      toast.error('A senha deve ter no máximo 128 caracteres');
+      return;
+    }
     if (newPassword !== confirmPassword) {
       toast.error('As senhas não coincidem');
       return;
@@ -62,7 +66,6 @@ const SecurityPage = () => {
       </div>
 
       <div className="px-4 space-y-4">
-        {/* Password change */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-4 space-y-4">
           <div className="flex items-center gap-2">
             <KeyRound size={16} className="text-primary" />
@@ -71,11 +74,11 @@ const SecurityPage = () => {
           <div className="space-y-3">
             <div>
               <Label className="text-xs text-muted-foreground">Nova senha</Label>
-              <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Mínimo 6 caracteres" className="mt-1" />
+              <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Mínimo 6 caracteres" className="mt-1" maxLength={128} />
             </div>
             <div>
               <Label className="text-xs text-muted-foreground">Confirmar nova senha</Label>
-              <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repita a nova senha" className="mt-1" />
+              <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repita a nova senha" className="mt-1" maxLength={128} />
             </div>
             <Button onClick={handleChangePassword} disabled={saving || !newPassword} className="w-full">
               {saving ? 'Salvando...' : 'Alterar senha'}
@@ -86,7 +89,6 @@ const SecurityPage = () => {
           </p>
         </motion.div>
 
-        {/* Sign out all */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="glass-card p-4 space-y-3">
           <div className="flex items-center gap-2">
             <LogOut size={16} className="text-destructive" />

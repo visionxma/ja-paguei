@@ -10,6 +10,7 @@ import SearchFilterBar from '@/components/SearchFilterBar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFormat } from '@/contexts/FormatContext';
 import { fetchPersonalBills, createBill, updateBill, updateBillStatus, deleteBill, uploadAttachment } from '@/lib/api';
+import { toBillCard, buildMonthlyData, type BillRow } from '@/lib/bill-utils';
 import { Bill } from '@/types/finance';
 import { toast } from 'sonner';
 import {
@@ -28,7 +29,7 @@ const Dashboard = () => {
   const { formatCurrency } = useFormat();
   const queryClient = useQueryClient();
   const [showAddBill, setShowAddBill] = useState(false);
-  const [editBill, setEditBill] = useState<any>(null);
+  const [editBill, setEditBill] = useState<ReturnType<typeof toBillCard> | null>(null);
   const [attachBillId, setAttachBillId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'contas' | 'graficos'>('contas');
   const [searchQuery, setSearchQuery] = useState('');
@@ -49,7 +50,7 @@ const Dashboard = () => {
   });
 
   const editMutation = useMutation({
-    mutationFn: ({ id, updates }: { id: string; updates: any }) => updateBill(id, updates),
+    mutationFn: ({ id, updates }: { id: string; updates: Parameters<typeof updateBill>[1] }) => updateBill(id, updates),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['personal-bills'] }); toast.success('Conta atualizada!'); },
     onError: () => { toast.error('Erro ao atualizar conta'); },
   });
@@ -74,9 +75,7 @@ const Dashboard = () => {
     toggleMutation.mutate({ id, status: newStatus, paidAt: newStatus === 'pago' ? new Date().toISOString() : null });
   };
 
-  const handleDelete = (id: string) => {
-    setDeleteConfirmId(id);
-  };
+  const handleDelete = (id: string) => setDeleteConfirmId(id);
 
   const confirmDelete = () => {
     if (deleteConfirmId) {
@@ -85,16 +84,16 @@ const Dashboard = () => {
     }
   };
 
-  const handleEdit = (bill: any) => {
+  const handleEdit = (bill: ReturnType<typeof toBillCard>) => {
     setEditBill(bill);
     setShowAddBill(true);
   };
 
-  const handleEditSubmit = (id: string, updates: any) => {
+  const handleEditSubmit = (id: string, updates: Parameters<typeof updateBill>[1]) => {
     editMutation.mutate({ id, updates });
   };
 
-  const addBill = async (bill: Omit<Bill, 'id' | 'createdAt'>, _splits?: any, pendingFiles?: File[]) => {
+  const addBill = async (bill: Omit<Bill, 'id' | 'createdAt'>, _splits?: unknown, pendingFiles?: File[]) => {
     if (!user) return;
     try {
       const created = await createMutation.mutateAsync({
@@ -171,37 +170,8 @@ const Dashboard = () => {
     b.status === 'pendente' && b.due_date && new Date(b.due_date) < today
   );
 
-  const toBillCard = (bill: any) => ({
-    ...bill,
-    dueDate: bill.due_date || undefined,
-    paidAt: bill.paid_at || undefined,
-    createdAt: bill.created_at,
-  });
-
-  // Build real monthly data from bills
-  const monthlyData = useMemo(() => {
-    const monthMap = new Map<string, { month: string; total: number; paid: number; pending: number }>();
-    bills.forEach(b => {
-      const dateStr = b.due_date || b.created_at;
-      if (!dateStr) return;
-      const d = new Date(dateStr);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      const label = d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
-      if (!monthMap.has(key)) {
-        monthMap.set(key, { month: label.charAt(0).toUpperCase() + label.slice(1), total: 0, paid: 0, pending: 0 });
-      }
-      const entry = monthMap.get(key)!;
-      const amount = Number(b.amount);
-      entry.total += amount;
-      if (b.status === 'pago') entry.paid += amount;
-      else entry.pending += amount;
-    });
-    return Array.from(monthMap.entries())
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([, v]) => v);
-  }, [bills]);
-
-  const billsForChart = bills.map(b => toBillCard(b)) as any;
+  const monthlyData = useMemo(() => buildMonthlyData(bills), [bills]);
+  const billsForChart = useMemo(() => bills.map(toBillCard), [bills]);
 
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-8">
@@ -211,7 +181,6 @@ const Dashboard = () => {
           <h1 className="text-2xl font-display font-bold mt-1">Minhas Contas</h1>
         </motion.div>
 
-        {/* Notifications */}
         {(overdueBills.length > 0 || upcomingBills.length > 0) && (
           <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="mt-3 space-y-2">
             {overdueBills.length > 0 && (
@@ -277,7 +246,7 @@ const Dashboard = () => {
                 <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mt-4 mb-2">Pendentes ({pendingBills.length})</p>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                   {pendingBills.map(bill => (
-                    <BillCard key={bill.id} bill={toBillCard(bill) as any} onToggleStatus={toggleStatus} onDelete={handleDelete} onEdit={handleEdit} onOpenAttachments={setAttachBillId} isToggling={toggleMutation.isPending && toggleMutation.variables?.id === bill.id} isDeleting={deleteMutation.isPending && deleteConfirmId === bill.id} />
+                    <BillCard key={bill.id} bill={toBillCard(bill)} onToggleStatus={toggleStatus} onDelete={handleDelete} onEdit={handleEdit} onOpenAttachments={setAttachBillId} isToggling={toggleMutation.isPending && toggleMutation.variables?.id === bill.id} isDeleting={deleteMutation.isPending && deleteConfirmId === bill.id} />
                   ))}
                 </div>
               </>
@@ -288,7 +257,7 @@ const Dashboard = () => {
                 <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mt-4 mb-2">Pagas ({paidBills.length})</p>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                   {paidBills.map(bill => (
-                    <BillCard key={bill.id} bill={toBillCard(bill) as any} onToggleStatus={toggleStatus} onDelete={handleDelete} onEdit={handleEdit} onOpenAttachments={setAttachBillId} isToggling={toggleMutation.isPending && toggleMutation.variables?.id === bill.id} isDeleting={deleteMutation.isPending && deleteConfirmId === bill.id} />
+                    <BillCard key={bill.id} bill={toBillCard(bill)} onToggleStatus={toggleStatus} onDelete={handleDelete} onEdit={handleEdit} onOpenAttachments={setAttachBillId} isToggling={toggleMutation.isPending && toggleMutation.variables?.id === bill.id} isDeleting={deleteMutation.isPending && deleteConfirmId === bill.id} />
                   ))}
                 </div>
               </>
@@ -316,7 +285,6 @@ const Dashboard = () => {
         />
       )}
 
-      {/* Delete confirmation dialog */}
       <AlertDialog open={!!deleteConfirmId} onOpenChange={(open) => { if (!open) setDeleteConfirmId(null); }}>
         <AlertDialogContent className="bg-card border-border text-foreground max-w-sm mx-auto">
           <AlertDialogHeader>

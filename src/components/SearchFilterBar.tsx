@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react';
 import { Search, X } from 'lucide-react';
 import { BillCategory, CATEGORY_LABELS } from '@/types/finance';
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface SearchFilterBarProps {
   searchQuery: string;
@@ -20,26 +22,36 @@ const SearchFilterBar = ({
   periodFilter,
   onPeriodChange,
 }: SearchFilterBarProps) => {
+  const [localSearch, setLocalSearch] = useState(searchQuery);
+  const debouncedSearch = useDebounce(localSearch, 300);
+
+  useEffect(() => {
+    onSearchChange(debouncedSearch);
+  }, [debouncedSearch, onSearchChange]);
+
+  // Sync external changes
+  useEffect(() => {
+    setLocalSearch(searchQuery);
+  }, [searchQuery]);
+
   return (
     <div className="space-y-3">
-      {/* Search */}
       <div className="relative">
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
         <input
           type="text"
           placeholder="Buscar contas..."
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
+          value={localSearch}
+          onChange={(e) => setLocalSearch(e.target.value)}
           className="w-full bg-secondary border border-border text-foreground rounded-xl pl-9 pr-8 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
         />
-        {searchQuery && (
-          <button onClick={() => onSearchChange('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+        {localSearch && (
+          <button onClick={() => { setLocalSearch(''); onSearchChange(''); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
             <X size={14} />
           </button>
         )}
       </div>
 
-      {/* Period filter */}
       <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
         {[
           { value: 'todos', label: 'Todos' },
@@ -61,7 +73,6 @@ const SearchFilterBar = ({
         ))}
       </div>
 
-      {/* Category filter */}
       <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
         {categories.map((cat) => (
           <button
