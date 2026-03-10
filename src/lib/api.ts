@@ -116,6 +116,11 @@ export const createGroup = async (name: string, description: string, userId: str
   return group;
 };
 
+export const updateGroup = async (id: string, updates: { name?: string; description?: string | null; image_url?: string | null }) => {
+  const { error } = await supabase.from('groups').update(updates).eq('id', id);
+  if (error) throw error;
+};
+
 export const deleteGroup = async (id: string) => {
   const { error } = await supabase.from('groups').delete().eq('id', id);
   if (error) throw error;
