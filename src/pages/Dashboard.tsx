@@ -12,7 +12,7 @@ import { useFormat } from '@/contexts/FormatContext';
 import { fetchPersonalBills, createBill, updateBill, updateBillStatus, deleteBill, uploadAttachment } from '@/lib/api';
 import { toBillCard, buildMonthlyData, type BillRow } from '@/lib/bill-utils';
 import { Bill } from '@/types/finance';
-import { useBillDueNotifications } from '@/hooks/useNotifications';
+import { useBillDueNotifications, useNotificationPermission } from '@/hooks/useNotifications';
 import { toast } from 'sonner';
 import {
   AlertDialog,
