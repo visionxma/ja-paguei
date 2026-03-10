@@ -150,9 +150,25 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
     };
   }, [filePreviewUrls]);
 
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+
   const handleSubmit = () => {
+    const errors: string[] = [];
+    const trimmedDesc = description.trim();
+    if (!trimmedDesc) errors.push('Nome da conta é obrigatório');
+    if (trimmedDesc.length > 200) errors.push('Nome da conta deve ter no máximo 200 caracteres');
+    
     const amount = parseCurrencyToNumber(amountDisplay);
-    if (!description || amount <= 0) return;
+    if (amount <= 0) errors.push('Valor deve ser maior que zero');
+    if (amount > 999999999) errors.push('Valor excede o limite permitido');
+    
+    if (notes && notes.length > 1000) errors.push('Descrição deve ter no máximo 1000 caracteres');
+    
+    if (errors.length > 0) {
+      setValidationErrors(errors);
+      return;
+    }
+    setValidationErrors([]);
     const dueDateStr = dueDate ? format(dueDate, 'yyyy-MM-dd') : undefined;
     const startDateStr = startDate ? format(startDate, 'yyyy-MM-dd') : undefined;
 
