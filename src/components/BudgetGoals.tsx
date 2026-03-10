@@ -33,7 +33,7 @@ const BudgetGoals = ({ spendingByCategory }: BudgetGoalsProps) => {
   const { data: goals = [] } = useQuery({
     queryKey: ['budget-goals', user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('budget_goals')
         .select('*')
         .eq('user_id', user!.id);
