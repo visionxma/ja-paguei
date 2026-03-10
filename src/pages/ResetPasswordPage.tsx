@@ -11,7 +11,7 @@ import { Eye, EyeOff, KeyRound } from 'lucide-react';
 
 const ResetPasswordPage = () => {
   const navigate = useNavigate();
-  const { isPasswordRecovery, clearPasswordRecovery } = useAuth();
+  const { isPasswordRecovery, clearPasswordRecovery, user } = useAuth();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -33,6 +33,13 @@ const ResetPasswordPage = () => {
       return;
     }
 
+    // If user is logged in and arrived at this page, it's likely from a recovery link
+    // (the hash was already consumed by Supabase auth)
+    if (user) {
+      setHasRecoveryToken(true);
+      return;
+    }
+
     // Also listen for PASSWORD_RECOVERY event (fallback)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') {
@@ -41,7 +48,7 @@ const ResetPasswordPage = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, [isPasswordRecovery]);
+  }, [isPasswordRecovery, user]);
 
   const handleReset = async () => {
     if (password.length < 6) {
