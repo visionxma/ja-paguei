@@ -16,6 +16,7 @@ import UserAvatar from '@/components/UserAvatar';
 const GroupsPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { formatCurrency } = useFormat();
   const queryClient = useQueryClient();
   const [showCreate, setShowCreate] = useState(false);
   const [newName, setNewName] = useState('');
