@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,6 +11,7 @@ import { Eye, EyeOff, KeyRound } from 'lucide-react';
 
 const ResetPasswordPage = () => {
   const navigate = useNavigate();
+  const { isPasswordRecovery, clearPasswordRecovery } = useAuth();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -18,13 +20,20 @@ const ResetPasswordPage = () => {
   const [hasRecoveryToken, setHasRecoveryToken] = useState(false);
 
   useEffect(() => {
+    // Check from AuthContext (catches early PASSWORD_RECOVERY events)
+    if (isPasswordRecovery) {
+      setHasRecoveryToken(true);
+      return;
+    }
+
     // Check for recovery token in URL hash
     const hash = window.location.hash;
     if (hash && hash.includes('type=recovery')) {
       setHasRecoveryToken(true);
+      return;
     }
 
-    // Also listen for PASSWORD_RECOVERY event
+    // Also listen for PASSWORD_RECOVERY event (fallback)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') {
         setHasRecoveryToken(true);
@@ -32,7 +41,7 @@ const ResetPasswordPage = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [isPasswordRecovery]);
 
   const handleReset = async () => {
     if (password.length < 6) {
@@ -56,6 +65,7 @@ const ResetPasswordPage = () => {
       toast.error(error.message || 'Erro ao redefinir senha');
     } else {
       setSuccess(true);
+      clearPasswordRecovery();
       toast.success('Senha redefinida com sucesso!');
     }
   };
