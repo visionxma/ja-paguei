@@ -55,7 +55,7 @@ const NotificationBell = () => {
 
   const clearAll = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('notifications')
         .delete()
         .eq('user_id', user!.id);

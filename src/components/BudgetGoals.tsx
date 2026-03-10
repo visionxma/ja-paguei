@@ -63,7 +63,7 @@ const BudgetGoals = ({ spendingByCategory }: BudgetGoalsProps) => {
 
   const deleteGoal = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('budget_goals').delete().eq('id', id);
+      const { error } = await (supabase as any).from('budget_goals').delete().eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {

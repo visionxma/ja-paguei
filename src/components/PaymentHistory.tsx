@@ -23,7 +23,7 @@ const PaymentHistory = ({ billId }: PaymentHistoryProps) => {
   const { data: logs = [], isLoading } = useQuery({
     queryKey: ['payment-logs', billId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('payment_logs')
         .select('*')
         .eq('bill_id', billId)
