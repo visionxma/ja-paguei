@@ -185,12 +185,14 @@ const GroupProfilePanel = ({ open, onClose, group, members, onInvite, onLeaveGro
             className="fixed inset-y-0 right-0 w-full max-w-md bg-background z-50 flex flex-col h-full"
           >
             {/* Header */}
-            <div className="sticky top-0 bg-background/95 backdrop-blur-sm z-10 px-4 py-3 flex items-center gap-3 border-b border-border">
+            <div className="shrink-0 bg-background/95 backdrop-blur-sm z-10 px-4 py-3 flex items-center gap-3 border-b border-border">
               <button onClick={onClose} className="p-1.5 rounded-full hover:bg-muted transition-colors">
                 <X size={20} />
               </button>
               <h2 className="font-display font-semibold text-lg">Info do grupo</h2>
             </div>
+
+            <div className="flex-1 overflow-y-auto">
 
             {/* Group Avatar & Name */}
             <div className="flex flex-col items-center pt-8 pb-6 px-6">
