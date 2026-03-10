@@ -69,6 +69,7 @@ const AppRoutes = () => {
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/login" element={user ? <LoginRedirect /> : <LoginPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/groups" element={<ProtectedRoute><GroupsPage /></ProtectedRoute>} />
               <Route path="/groups/:id" element={<ProtectedRoute><GroupDetail /></ProtectedRoute>} />
