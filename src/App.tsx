@@ -29,6 +29,7 @@ const SecurityPage = lazy(() => import("./pages/SecurityPage"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
+const JoinGroupPage = lazy(() => import("./pages/JoinGroupPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -74,6 +75,7 @@ const AppRoutes = () => {
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/groups" element={<ProtectedRoute><GroupsPage /></ProtectedRoute>} />
+              <Route path="/groups/join/:code" element={<JoinGroupPage />} />
               <Route path="/groups/:id" element={<ProtectedRoute><GroupDetail /></ProtectedRoute>} />
               <Route path="/history" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
               <Route path="/friends" element={<ProtectedRoute><FriendsPage /></ProtectedRoute>} />

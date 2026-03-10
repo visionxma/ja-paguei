@@ -80,7 +80,7 @@ export const deleteBill = async (id: string) => {
 export const fetchGroups = async () => {
   const { data, error } = await supabase
     .from('group_members')
-    .select('group_id, role, groups(id, name, description, created_at, created_by)')
+    .select('group_id, role, groups(id, name, description, created_at, created_by, image_url)')
     .order('joined_at', { ascending: false });
   if (error) throw error;
   return data;

@@ -248,29 +248,35 @@ export type Database = {
       }
       groups: {
         Row: {
+          admin_only_edit: boolean
           created_at: string
           created_by: string
           description: string | null
           id: string
           image_url: string | null
+          invite_code: string | null
           name: string
           updated_at: string
         }
         Insert: {
+          admin_only_edit?: boolean
           created_at?: string
           created_by: string
           description?: string | null
           id?: string
           image_url?: string | null
+          invite_code?: string | null
           name: string
           updated_at?: string
         }
         Update: {
+          admin_only_edit?: boolean
           created_at?: string
           created_by?: string
           description?: string | null
           id?: string
           image_url?: string | null
+          invite_code?: string | null
           name?: string
           updated_at?: string
         }
