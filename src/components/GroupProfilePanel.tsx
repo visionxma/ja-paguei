@@ -340,7 +340,7 @@ const GroupProfilePanel = ({ open, onClose, group, members, onInvite, onLeaveGro
                                 )}
                                 {/* Admin actions on other members */}
                                 {isAdmin && !isSelf && !memberIsCreator && (
-                                  <div className="flex items-center gap-0.5 opacity-0 group-hover/member:opacity-100 transition-opacity">
+                                  <div className="flex items-center gap-0.5">
                                     {memberIsAdmin ? (
                                       <button onClick={() => { setTargetMember(member); setConfirmAction('demote'); }}
                                         title="Remover admin" className="p-1.5 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
