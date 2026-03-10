@@ -55,8 +55,7 @@ function showBillNotification(bill: DueBill) {
       body,
       icon: '/pwa-icon-192.png',
       tag,
-      renotify: false,
-    });
+    } as NotificationOptions);
   } catch {
     // SW notification fallback
     navigator.serviceWorker?.ready?.then((reg) => {
