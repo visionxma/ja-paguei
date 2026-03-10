@@ -33,6 +33,7 @@ const GroupDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { formatCurrency } = useFormat();
   const queryClient = useQueryClient();
   const [showAddBill, setShowAddBill] = useState(false);
   const [editBill, setEditBill] = useState<ReturnType<typeof toBillCard> | null>(null);
