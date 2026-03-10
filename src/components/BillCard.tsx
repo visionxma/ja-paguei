@@ -14,7 +14,7 @@ interface BillCardProps {
   isDeleting?: boolean;
 }
 
-const BillCard = ({ bill, onToggleStatus, onDelete, onEdit, onOpenAttachments, responsibleName }: BillCardProps) => {
+const BillCard = ({ bill, onToggleStatus, onDelete, onEdit, onOpenAttachments, responsibleName, isToggling, isDeleting }: BillCardProps) => {
   const isPaid = bill.status === 'pago';
   const { formatCurrency, formatDate } = useFormat();
 
