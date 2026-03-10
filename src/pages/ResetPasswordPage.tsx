@@ -73,6 +73,8 @@ const ResetPasswordPage = () => {
     } else {
       setSuccess(true);
       clearPasswordRecovery();
+      // Sign out so the user logs in fresh with the new password
+      await supabase.auth.signOut();
       toast.success('Senha redefinida com sucesso!');
     }
   };
