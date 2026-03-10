@@ -2,6 +2,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import appIcon from '@/assets/japaguei-icon.png';
+import NotificationBell from '@/components/NotificationBell';
+import GlobalSearch from '@/components/GlobalSearch';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -29,7 +31,9 @@ const Header = () => {
           JáPaguei
         </h1>
 
-        <div className="shrink-0">
+        <div className="flex items-center gap-1 shrink-0">
+          <GlobalSearch />
+          <NotificationBell />
           {user ? (
             <button onClick={() => navigate('/profile')} aria-label="Ir para o perfil">
               <Avatar className="h-9 w-9 ring-2 ring-primary/20 hover:ring-primary/50 transition-all cursor-pointer">
