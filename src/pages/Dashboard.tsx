@@ -199,6 +199,21 @@ const Dashboard = () => {
   const monthlyData = useMemo(() => buildMonthlyData(bills), [bills]);
   const billsForChart = useMemo(() => bills.map(toBillCard), [bills]);
 
+  // Spending by category for budget goals (current month, pending+paid)
+  const spendingByCategory = useMemo(() => {
+    const now = new Date();
+    const thisMonth = now.getMonth();
+    const thisYear = now.getFullYear();
+    const result: Record<string, number> = {};
+    bills.forEach(b => {
+      const d = b.due_date ? new Date(b.due_date) : new Date(b.created_at);
+      if (d.getMonth() === thisMonth && d.getFullYear() === thisYear) {
+        result[b.category] = (result[b.category] || 0) + Number(b.amount);
+      }
+    });
+    return result;
+  }, [bills]);
+
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-8">
       <div className="px-4 md:px-8 pt-6 pb-4">
