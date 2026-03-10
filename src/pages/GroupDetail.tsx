@@ -212,8 +212,8 @@ const GroupDetail = () => {
   })();
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <div className="px-4 pt-6 pb-4">
+    <div className="min-h-screen bg-background pb-24 md:pb-8">
+      <div className="px-4 md:px-8 pt-6 pb-4">
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
           <button onClick={() => navigate('/groups')} className="flex items-center gap-1 text-muted-foreground text-sm mb-3 hover:text-foreground transition-colors">
             <ArrowLeft size={16} /> Voltar

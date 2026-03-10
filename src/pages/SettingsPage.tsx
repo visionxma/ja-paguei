@@ -44,8 +44,8 @@ const SettingsPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <div className="px-4 pt-6 pb-4 flex items-center gap-3">
+    <div className="min-h-screen bg-background pb-24 md:pb-8">
+      <div className="px-4 md:px-8 pt-6 pb-4 flex items-center gap-3">
         <button onClick={() => navigate('/profile')} className="p-1.5 rounded-lg hover:bg-card transition-colors">
           <ArrowLeft size={20} />
         </button>
