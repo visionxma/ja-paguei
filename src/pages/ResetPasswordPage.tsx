@@ -111,6 +111,17 @@ const ResetPasswordPage = () => {
     );
   }
 
+  if (waitingForToken || authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="text-center space-y-4">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-sm text-muted-foreground">Verificando link de recuperação...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!hasRecoveryToken) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
