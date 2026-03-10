@@ -4,7 +4,8 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
-import { fetchGroups, createGroup } from '@/lib/api';
+import { useFormat } from '@/contexts/FormatContext';
+import { fetchGroups, createGroup, fetchGroupBills } from '@/lib/api';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -15,6 +16,7 @@ import UserAvatar from '@/components/UserAvatar';
 const GroupsPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { formatCurrency } = useFormat();
   const queryClient = useQueryClient();
   const [showCreate, setShowCreate] = useState(false);
   const [newName, setNewName] = useState('');
@@ -91,6 +93,21 @@ const GroupsPage = () => {
       return acc;
     }, [] as GroupDisplay[]);
 
+  // Fetch all group bills for the summary
+  const groupIds = groups.map(g => g.id);
+  const { data: allGroupBills = [] } = useQuery({
+    queryKey: ['all-group-bills', groupIds],
+    queryFn: async () => {
+      const results = await Promise.all(groupIds.map(id => fetchGroupBills(id)));
+      return results.flat();
+    },
+    enabled: groupIds.length > 0,
+  });
+
+  const totalPendingAll = allGroupBills.filter(b => b.status === 'pendente').reduce((s, b) => s + Number(b.amount), 0);
+  const pendingCount = allGroupBills.filter(b => b.status === 'pendente').length;
+  const paidCount = allGroupBills.filter(b => b.status === 'pago').length;
+
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-8">
       <div className="px-4 md:px-8 pt-6 pb-4">
@@ -98,6 +115,29 @@ const GroupsPage = () => {
           <h1 className="text-2xl font-display font-bold">Grupos</h1>
           <p className="text-sm text-muted-foreground mt-1">Gerencie contas compartilhadas</p>
         </motion.div>
+
+        {groups.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mt-4 gradient-primary rounded-2xl p-5">
+            <p className="text-sm text-primary-foreground/70">Total pendente em todos os grupos</p>
+            <p className="text-3xl font-display font-bold text-primary-foreground mt-1">
+              {formatCurrency(totalPendingAll)}
+            </p>
+            <div className="flex items-center gap-4 mt-3">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-primary-foreground/50" />
+                <span className="text-xs text-primary-foreground/70">{pendingCount} pendentes</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-primary-foreground" />
+                <span className="text-xs text-primary-foreground/70">{paidCount} pagas</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-primary-foreground/30" />
+                <span className="text-xs text-primary-foreground/70">{groups.length} grupo{groups.length !== 1 ? 's' : ''}</span>
+              </div>
+            </div>
+          </motion.div>
+        )}
       </div>
 
       <div className="px-4 md:px-8 space-y-3">
