@@ -21,13 +21,24 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  const validateEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
   const handleLogin = async () => {
-    if (!email || !password) {
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!trimmedEmail || !password) {
       toast.error('Preencha todos os campos');
       return;
     }
+    if (!validateEmail(trimmedEmail)) {
+      toast.error('Email inválido');
+      return;
+    }
+    if (password.length > 128) {
+      toast.error('Senha muito longa');
+      return;
+    }
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({ email: trimmedEmail, password });
     setLoading(false);
     if (error) {
       if (error.message.includes('Invalid login credentials')) {
