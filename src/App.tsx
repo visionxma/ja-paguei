@@ -76,6 +76,7 @@ const AppRoutes = () => {
               <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/groups" element={<ProtectedRoute><GroupsPage /></ProtectedRoute>} />
               <Route path="/groups/:id" element={<ProtectedRoute><GroupDetail /></ProtectedRoute>} />
+              <Route path="/groups/join/:code" element={<JoinGroupPage />} />
               <Route path="/history" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
               <Route path="/friends" element={<ProtectedRoute><FriendsPage /></ProtectedRoute>} />
               <Route path="/add-friend" element={<ProtectedRoute><AddFriendPage /></ProtectedRoute>} />
