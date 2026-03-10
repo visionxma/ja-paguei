@@ -208,6 +208,17 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
           <p className="text-sm text-muted-foreground">{isEditing ? 'Atualize os dados da conta.' : 'Adicione uma conta para acompanhar.'}</p>
         </DialogHeader>
 
+        {/* Validation errors */}
+          {validationErrors.length > 0 && (
+            <div className="bg-destructive/10 border border-destructive/30 rounded-xl p-3 space-y-1">
+              {validationErrors.map((err, i) => (
+                <p key={i} className="text-xs text-destructive flex items-center gap-1.5">
+                  <AlertCircle size={12} className="shrink-0" /> {err}
+                </p>
+              ))}
+            </div>
+          )}
+
         <div className="space-y-4 mt-2">
           {/* Nome da conta */}
           <div>
