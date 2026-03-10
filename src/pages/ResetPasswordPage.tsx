@@ -11,44 +11,59 @@ import { Eye, EyeOff, KeyRound } from 'lucide-react';
 
 const ResetPasswordPage = () => {
   const navigate = useNavigate();
-  const { isPasswordRecovery, clearPasswordRecovery, user } = useAuth();
+  const { isPasswordRecovery, clearPasswordRecovery, user, loading: authLoading } = useAuth();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [hasRecoveryToken, setHasRecoveryToken] = useState(false);
+  const [waitingForToken, setWaitingForToken] = useState(true);
 
   useEffect(() => {
     // Check from AuthContext (catches early PASSWORD_RECOVERY events)
     if (isPasswordRecovery) {
       setHasRecoveryToken(true);
+      setWaitingForToken(false);
       return;
     }
 
     // Check for recovery token in URL hash
     const hash = window.location.hash;
-    if (hash && hash.includes('type=recovery')) {
+    if (hash && (hash.includes('type=recovery') || hash.includes('access_token'))) {
       setHasRecoveryToken(true);
+      setWaitingForToken(false);
       return;
     }
 
     // If user is logged in and arrived at this page, it's likely from a recovery link
-    // (the hash was already consumed by Supabase auth)
     if (user) {
       setHasRecoveryToken(true);
+      setWaitingForToken(false);
       return;
     }
 
-    // Also listen for PASSWORD_RECOVERY event (fallback)
+    // If auth is still loading, wait for it
+    if (authLoading) return;
+
+    // Listen for PASSWORD_RECOVERY or SIGNED_IN events (token being consumed)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
+      if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
         setHasRecoveryToken(true);
+        setWaitingForToken(false);
       }
     });
 
-    return () => subscription.unsubscribe();
-  }, [isPasswordRecovery, user]);
+    // Give Supabase time to consume the token from the URL (up to 3s)
+    const timeout = setTimeout(() => {
+      setWaitingForToken(false);
+    }, 3000);
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeout);
+    };
+  }, [isPasswordRecovery, user, authLoading]);
 
   const handleReset = async () => {
     if (password.length < 6) {
@@ -92,6 +107,17 @@ const ResetPasswordPage = () => {
             Ir para o início
           </Button>
         </motion.div>
+      </div>
+    );
+  }
+
+  if (waitingForToken || authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="text-center space-y-4">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-sm text-muted-foreground">Verificando link de recuperação...</p>
+        </div>
       </div>
     );
   }
