@@ -12,14 +12,40 @@ import { cn } from '@/lib/utils';
 import { BillCategory, BillRecurrence, CATEGORY_LABELS, Bill } from '@/types/finance';
 import BillSplitSection, { SplitEntry } from '@/components/BillSplitSection';
 
+interface BillUpdates {
+  description?: string;
+  amount?: number;
+  start_date?: string | null;
+  due_date?: string | null;
+  category?: string;
+  recurrence?: string;
+  notes?: string | null;
+  responsible_id?: string | null;
+}
+
+interface EditableBill {
+  id: string;
+  description: string;
+  amount: number;
+  start_date?: string;
+  startDate?: string;
+  due_date?: string;
+  dueDate?: string;
+  category?: string;
+  recurrence?: string;
+  notes?: string;
+  responsible_id?: string;
+  responsibleId?: string;
+}
+
 interface AddBillDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAdd: (bill: Omit<Bill, 'id' | 'createdAt'>, splits?: SplitEntry[], pendingFiles?: File[]) => void;
   isGroup?: boolean;
   members?: { user_id: string; profiles: { display_name: string | null } | null }[];
-  editBill?: any;
-  onEdit?: (id: string, updates: any, splits?: SplitEntry[]) => void;
+  editBill?: EditableBill | null;
+  onEdit?: (id: string, updates: BillUpdates, splits?: SplitEntry[]) => void;
   onOpenAttachments?: (billId: string) => void;
   existingSplits?: SplitEntry[];
 }
