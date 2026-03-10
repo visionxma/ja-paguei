@@ -1,9 +1,13 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Moon, Sun, Monitor, DollarSign, Calendar } from 'lucide-react';
+import { ArrowLeft, Moon, Sun, Monitor, DollarSign, Calendar, Bell, BellOff, BellRing } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePreferences } from '@/hooks/usePreferences';
+import { useNotificationPermission } from '@/hooks/useNotifications';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
+import { toast } from 'sonner';
 
 interface OptionCardProps {
   icon: React.ReactNode;
@@ -32,6 +36,22 @@ const SettingsPage = () => {
   const navigate = useNavigate();
   const { preferences, isLoading, updatePreference, isSaving } = usePreferences();
   const { theme, setTheme } = useTheme();
+  const { permission, isSupported, requestPermission } = useNotificationPermission();
+  const [permState, setPermState] = useState(permission);
+
+  useEffect(() => {
+    setPermState(permission);
+  }, [permission]);
+
+  const handleEnableNotifications = async () => {
+    const granted = await requestPermission();
+    setPermState(granted ? 'granted' : 'denied');
+    if (granted) {
+      toast.success('Notificações ativadas!');
+    } else {
+      toast.error('Permissão de notificação negada. Ative nas configurações do navegador.');
+    }
+  };
 
   if (isLoading) {
     return (
@@ -55,8 +75,84 @@ const SettingsPage = () => {
       </div>
 
       <div className="px-4 space-y-4">
+        {/* Notifications */}
+        {isSupported && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-display font-semibold flex items-center gap-2">
+                <BellRing size={16} className="text-primary" />
+                Notificações Push
+              </h2>
+              {permState === 'granted' ? (
+                <span className="text-xs text-emerald-400 font-medium flex items-center gap-1">
+                  <Bell size={14} /> Ativadas
+                </span>
+              ) : permState === 'denied' ? (
+                <span className="text-xs text-destructive font-medium flex items-center gap-1">
+                  <BellOff size={14} /> Bloqueadas
+                </span>
+              ) : (
+                <button
+                  onClick={handleEnableNotifications}
+                  className="text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded-lg font-medium hover:bg-primary/90 transition-colors"
+                >
+                  Ativar
+                </button>
+              )}
+            </div>
+
+            {permState === 'denied' && (
+              <p className="text-xs text-muted-foreground mb-3">
+                Notificações bloqueadas. Para reativar, vá às configurações do seu navegador e permita notificações para este site.
+              </p>
+            )}
+
+            {permState === 'granted' && (
+              <div className="space-y-3">
+                <p className="text-xs text-muted-foreground">
+                  Receba alertas sobre contas próximas do vencimento.
+                </p>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-foreground">Contas vencidas</span>
+                    <Switch
+                      checked={preferences.notify_overdue}
+                      onCheckedChange={(v) => updatePreference({ notify_overdue: v })}
+                      disabled={isSaving}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-foreground">Vence em 1 dia</span>
+                    <Switch
+                      checked={preferences.notify_due_1day}
+                      onCheckedChange={(v) => updatePreference({ notify_due_1day: v })}
+                      disabled={isSaving}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-foreground">Vence em 3 dias</span>
+                    <Switch
+                      checked={preferences.notify_due_3days}
+                      onCheckedChange={(v) => updatePreference({ notify_due_3days: v })}
+                      disabled={isSaving}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-foreground">Vence em 7 dias</span>
+                    <Switch
+                      checked={preferences.notify_due_7days}
+                      onCheckedChange={(v) => updatePreference({ notify_due_7days: v })}
+                      disabled={isSaving}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </motion.div>
+        )}
+
         {/* Theme */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-4">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="glass-card p-4">
           <h2 className="text-sm font-display font-semibold mb-3">Tema</h2>
           <div className="flex gap-2">
             <OptionCard icon={<Moon size={18} />} label="Escuro" selected={theme === 'dark'} onClick={() => setTheme('dark')} disabled={isSaving} />
@@ -66,7 +162,7 @@ const SettingsPage = () => {
         </motion.div>
 
         {/* Currency */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="glass-card p-4">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass-card p-4">
           <h2 className="text-sm font-display font-semibold mb-3">Moeda</h2>
           <div className="flex gap-2">
             <OptionCard icon={<DollarSign size={18} />} label="R$ (BRL)" selected={preferences.currency === 'BRL'} onClick={() => updatePreference({ currency: 'BRL' })} disabled={isSaving} />
@@ -76,7 +172,7 @@ const SettingsPage = () => {
         </motion.div>
 
         {/* Date format */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass-card p-4">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="glass-card p-4">
           <h2 className="text-sm font-display font-semibold mb-3">Formato de data</h2>
           <div className="flex gap-2">
             <OptionCard icon={<Calendar size={18} />} label="DD/MM/AAAA" selected={preferences.date_format === 'DD/MM/YYYY'} onClick={() => updatePreference({ date_format: 'DD/MM/YYYY' })} disabled={isSaving} />
