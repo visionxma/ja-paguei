@@ -6,6 +6,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFormat } from '@/contexts/FormatContext';
 import { fetchGroupDetail, fetchGroupMembers, fetchGroupBills, createBill, updateBill, updateBillStatus, deleteBill, saveBillSplits, fetchBillSplits, uploadAttachment, deleteGroup, removeGroupMember } from '@/lib/api';
+import { supabase } from '@/integrations/supabase/client';
+import GroupBalances from '@/components/GroupBalances';
 import BillCard from '@/components/BillCard';
 import FinanceCharts from '@/components/FinanceCharts';
 import AddBillDialog from '@/components/AddBillDialog';
@@ -62,6 +64,22 @@ const GroupDetail = () => {
     queryKey: ['group-bills', id],
     queryFn: () => fetchGroupBills(id!),
     enabled: !!id,
+  });
+
+  // Fetch all splits for balance calculation
+  const { data: allSplits = [] } = useQuery({
+    queryKey: ['group-all-splits', id],
+    queryFn: async () => {
+      const billIds = bills.map(b => b.id);
+      if (billIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from('bill_splits')
+        .select('*')
+        .in('bill_id', billIds);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id && bills.length > 0,
   });
 
   const createMutation = useMutation({
@@ -264,6 +282,12 @@ const GroupDetail = () => {
           </div>
         </motion.div>
       </div>
+
+      {allSplits.length > 0 && (
+        <div className="px-4 md:px-8 mb-4">
+          <GroupBalances members={members as any} bills={bills} splits={allSplits} />
+        </div>
+      )}
 
       <div className="px-4 md:px-8 flex gap-2 mb-4">
         {(['contas', 'graficos'] as const).map(tab => (
