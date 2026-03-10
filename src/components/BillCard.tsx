@@ -34,13 +34,16 @@ const BillCard = ({ bill, onToggleStatus, onDelete, onEdit, onOpenAttachments, r
       <div className="flex items-center gap-3">
         <button
           onClick={() => onToggleStatus?.(bill.id)}
-          className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+          disabled={isToggling}
+          className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all disabled:opacity-50 ${
             isPaid
               ? 'bg-success/20 text-success'
               : 'bg-secondary text-muted-foreground hover:bg-primary/20 hover:text-primary'
           }`}
         >
-          {isPaid ? <Check size={18} /> : <Clock size={18} />}
+          {isToggling ? (
+            <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+          ) : isPaid ? <Check size={18} /> : <Clock size={18} />}
         </button>
 
         <div className="flex-1 min-w-0">
