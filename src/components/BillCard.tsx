@@ -10,9 +10,11 @@ interface BillCardProps {
   onEdit?: (bill: any) => void;
   onOpenAttachments?: (billId: string) => void;
   responsibleName?: string;
+  isToggling?: boolean;
+  isDeleting?: boolean;
 }
 
-const BillCard = ({ bill, onToggleStatus, onDelete, onEdit, onOpenAttachments, responsibleName }: BillCardProps) => {
+const BillCard = ({ bill, onToggleStatus, onDelete, onEdit, onOpenAttachments, responsibleName, isToggling, isDeleting }: BillCardProps) => {
   const isPaid = bill.status === 'pago';
   const { formatCurrency, formatDate } = useFormat();
 
@@ -32,13 +34,16 @@ const BillCard = ({ bill, onToggleStatus, onDelete, onEdit, onOpenAttachments, r
       <div className="flex items-center gap-3">
         <button
           onClick={() => onToggleStatus?.(bill.id)}
-          className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+          disabled={isToggling}
+          className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all disabled:opacity-50 ${
             isPaid
               ? 'bg-success/20 text-success'
               : 'bg-secondary text-muted-foreground hover:bg-primary/20 hover:text-primary'
           }`}
         >
-          {isPaid ? <Check size={18} /> : <Clock size={18} />}
+          {isToggling ? (
+            <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+          ) : isPaid ? <Check size={18} /> : <Clock size={18} />}
         </button>
 
         <div className="flex-1 min-w-0">
@@ -92,8 +97,17 @@ const BillCard = ({ bill, onToggleStatus, onDelete, onEdit, onOpenAttachments, r
           </button>
         )}
         {onDelete && (
-          <button onClick={() => onDelete(bill.id)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors px-2 py-1 rounded-lg hover:bg-destructive/10 ml-auto">
-            <Trash2 size={12} /> Excluir
+          <button
+            onClick={() => onDelete(bill.id)}
+            disabled={isDeleting}
+            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors px-2 py-1 rounded-lg hover:bg-destructive/10 ml-auto disabled:opacity-50"
+          >
+            {isDeleting ? (
+              <div className="w-3 h-3 border-2 border-destructive border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Trash2 size={12} />
+            )}
+            Excluir
           </button>
         )}
       </div>

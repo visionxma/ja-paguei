@@ -1,11 +1,21 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { UserPlus, UserCheck, UserX, Trash2, Mail, QrCode, Users } from 'lucide-react';
 import { useFriends } from '@/hooks/useFriends';
 import { formatUserName } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 
@@ -13,6 +23,10 @@ const FriendsPage = () => {
   const { friends, pendingReceived, pendingSent, loading, sendRequestByEmail, acceptRequest, rejectRequest, removeFriend } = useFriends();
   const [email, setEmail] = useState('');
   const [sending, setSending] = useState(false);
+  const [acceptingId, setAcceptingId] = useState<string | null>(null);
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [removeConfirmId, setRemoveConfirmId] = useState<string | null>(null);
+  const [removingId, setRemovingId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const handleSendByEmail = async () => {
@@ -21,6 +35,26 @@ const FriendsPage = () => {
     await sendRequestByEmail(email.trim());
     setEmail('');
     setSending(false);
+  };
+
+  const handleAccept = async (id: string) => {
+    setAcceptingId(id);
+    await acceptRequest(id);
+    setAcceptingId(null);
+  };
+
+  const handleReject = async (id: string) => {
+    setRejectingId(id);
+    await rejectRequest(id);
+    setRejectingId(null);
+  };
+
+  const handleRemoveConfirm = async () => {
+    if (!removeConfirmId) return;
+    setRemovingId(removeConfirmId);
+    await removeFriend(removeConfirmId);
+    setRemovingId(null);
+    setRemoveConfirmId(null);
   };
 
   const Avatar = ({ url, name }: { url: string | null; name: string | null }) => (
@@ -32,6 +66,10 @@ const FriendsPage = () => {
       </div>
     )
   );
+
+  const removeFriendName = removeConfirmId
+    ? formatUserName(friends.find(f => f.id === removeConfirmId)?.display_name) || 'este amigo'
+    : '';
 
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-8">
@@ -62,11 +100,29 @@ const FriendsPage = () => {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{formatUserName(req.display_name) || req.email || 'Usuário'}</p>
                   </div>
-                  <button onClick={() => acceptRequest(req.id)} className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 transition-colors" title="Aceitar">
-                    <UserCheck size={16} />
+                  <button
+                    onClick={() => handleAccept(req.id)}
+                    disabled={acceptingId === req.id}
+                    className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 transition-colors disabled:opacity-50"
+                    title="Aceitar"
+                  >
+                    {acceptingId === req.id ? (
+                      <div className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <UserCheck size={16} />
+                    )}
                   </button>
-                  <button onClick={() => rejectRequest(req.id)} className="p-2 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors" title="Recusar">
-                    <UserX size={16} />
+                  <button
+                    onClick={() => handleReject(req.id)}
+                    disabled={rejectingId === req.id}
+                    className="p-2 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors disabled:opacity-50"
+                    title="Recusar"
+                  >
+                    {rejectingId === req.id ? (
+                      <div className="w-4 h-4 border-2 border-destructive border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <UserX size={16} />
+                    )}
                   </button>
                 </div>
               ))}
@@ -96,7 +152,7 @@ const FriendsPage = () => {
                     onKeyDown={e => e.key === 'Enter' && handleSendByEmail()}
                   />
                   <Button onClick={handleSendByEmail} disabled={sending || !email.trim()} size="sm" className="shrink-0">
-                    Enviar
+                    {sending ? 'Enviando...' : 'Enviar'}
                   </Button>
                 </div>
               </TabsContent>
@@ -154,8 +210,17 @@ const FriendsPage = () => {
                     <p className="text-sm font-medium truncate">{formatUserName(friend.display_name) || friend.email || 'Usuário'}</p>
                     <p className="text-xs text-muted-foreground truncate">{friend.email}</p>
                   </div>
-                  <button onClick={() => removeFriend(friend.id)} className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors" title="Remover amigo">
-                    <Trash2 size={14} />
+                  <button
+                    onClick={() => setRemoveConfirmId(friend.id)}
+                    disabled={removingId === friend.id}
+                    className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
+                    title="Remover amigo"
+                  >
+                    {removingId === friend.id ? (
+                      <div className="w-3.5 h-3.5 border-2 border-destructive border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Trash2 size={14} />
+                    )}
                   </button>
                 </div>
               ))}
@@ -163,6 +228,24 @@ const FriendsPage = () => {
           )}
         </motion.div>
       </div>
+
+      {/* Remove friend confirmation */}
+      <AlertDialog open={!!removeConfirmId} onOpenChange={(open) => { if (!open) setRemoveConfirmId(null); }}>
+        <AlertDialogContent className="bg-card border-border text-foreground max-w-sm mx-auto">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display">Remover amigo</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
+              Tem certeza que deseja remover <span className="font-medium text-foreground">{removeFriendName}</span>? Vocês precisarão se adicionar novamente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex gap-2">
+            <AlertDialogCancel className="flex-1">Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRemoveConfirm} className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Remover
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

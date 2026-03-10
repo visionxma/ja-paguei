@@ -277,7 +277,7 @@ const Dashboard = () => {
                 <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mt-4 mb-2">Pendentes ({pendingBills.length})</p>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                   {pendingBills.map(bill => (
-                    <BillCard key={bill.id} bill={toBillCard(bill) as any} onToggleStatus={toggleStatus} onDelete={handleDelete} onEdit={handleEdit} onOpenAttachments={setAttachBillId} />
+                    <BillCard key={bill.id} bill={toBillCard(bill) as any} onToggleStatus={toggleStatus} onDelete={handleDelete} onEdit={handleEdit} onOpenAttachments={setAttachBillId} isToggling={toggleMutation.isPending && toggleMutation.variables?.id === bill.id} isDeleting={deleteMutation.isPending && deleteConfirmId === bill.id} />
                   ))}
                 </div>
               </>
@@ -288,7 +288,7 @@ const Dashboard = () => {
                 <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mt-4 mb-2">Pagas ({paidBills.length})</p>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                   {paidBills.map(bill => (
-                    <BillCard key={bill.id} bill={toBillCard(bill) as any} onToggleStatus={toggleStatus} onDelete={handleDelete} onEdit={handleEdit} onOpenAttachments={setAttachBillId} />
+                    <BillCard key={bill.id} bill={toBillCard(bill) as any} onToggleStatus={toggleStatus} onDelete={handleDelete} onEdit={handleEdit} onOpenAttachments={setAttachBillId} isToggling={toggleMutation.isPending && toggleMutation.variables?.id === bill.id} isDeleting={deleteMutation.isPending && deleteConfirmId === bill.id} />
                   ))}
                 </div>
               </>
