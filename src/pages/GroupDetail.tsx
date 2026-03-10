@@ -6,6 +6,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFormat } from '@/contexts/FormatContext';
 import { fetchGroupDetail, fetchGroupMembers, fetchGroupBills, createBill, updateBill, updateBillStatus, deleteBill, saveBillSplits, fetchBillSplits, uploadAttachment, deleteGroup, removeGroupMember } from '@/lib/api';
+import { supabase } from '@/integrations/supabase/client';
+import GroupBalances from '@/components/GroupBalances';
 import BillCard from '@/components/BillCard';
 import FinanceCharts from '@/components/FinanceCharts';
 import AddBillDialog from '@/components/AddBillDialog';
