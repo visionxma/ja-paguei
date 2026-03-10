@@ -41,10 +41,23 @@ const AttachmentsDialog = ({ open, onOpenChange, billId }: AttachmentsDialogProp
     },
   });
 
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
-      Array.from(files).forEach(file => uploadMutation.mutate(file));
+      Array.from(files).forEach(file => {
+        if (file.size > MAX_FILE_SIZE) {
+          toast.error(`"${file.name}" excede o limite de 10MB.`);
+          return;
+        }
+        if (!ALLOWED_TYPES.includes(file.type) && !file.type.startsWith('image/')) {
+          toast.error(`"${file.name}" — tipo de arquivo não suportado.`);
+          return;
+        }
+        uploadMutation.mutate(file);
+      });
     }
     e.target.value = '';
   };

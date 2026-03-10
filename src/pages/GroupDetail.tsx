@@ -179,19 +179,8 @@ const GroupDetail = () => {
     return result;
   }, [bills, searchQuery, selectedCategory, periodFilter]);
 
-  if (loadingGroup) return <div className="min-h-screen bg-background flex items-center justify-center"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>;
-  if (!group) return <div className="min-h-screen bg-background flex items-center justify-center"><p className="text-muted-foreground">Grupo não encontrado</p></div>;
-
-  const pendingBills = filteredBills.filter(b => b.status === 'pendente');
-  const paidBills = filteredBills.filter(b => b.status === 'pago');
-  const overdueBills = bills.filter(b => b.status === 'pendente' && b.due_date && new Date(b.due_date) < new Date());
-
-  const toBillCard = (bill: any) => ({ ...bill, dueDate: bill.due_date || undefined, paidAt: bill.paid_at || undefined, createdAt: bill.created_at });
-  const billsForChart = bills.map(toBillCard) as any;
-  const totalPending = pendingBills.reduce((s, b) => s + Number(b.amount), 0);
-
-  // Build real monthly data
-  const monthlyData = (() => {
+  // Build real monthly data (memoized) - must be before early returns
+  const monthlyData = useMemo(() => {
     const monthMap = new Map<string, { month: string; total: number; paid: number; pending: number }>();
     bills.forEach(b => {
       const dateStr = b.due_date || b.created_at;
@@ -209,7 +198,19 @@ const GroupDetail = () => {
       else entry.pending += amount;
     });
     return Array.from(monthMap.entries()).sort(([a], [b]) => a.localeCompare(b)).map(([, v]) => v);
-  })();
+  }, [bills]);
+
+  if (loadingGroup) return <div className="min-h-screen bg-background flex items-center justify-center"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>;
+  if (!group) return <div className="min-h-screen bg-background flex items-center justify-center"><p className="text-muted-foreground">Grupo não encontrado</p></div>;
+
+  const pendingBills = filteredBills.filter(b => b.status === 'pendente');
+  const paidBills = filteredBills.filter(b => b.status === 'pago');
+  const overdueBills = bills.filter(b => b.status === 'pendente' && b.due_date && new Date(b.due_date) < new Date());
+
+  const toBillCard = (bill: any) => ({ ...bill, dueDate: bill.due_date || undefined, paidAt: bill.paid_at || undefined, createdAt: bill.created_at });
+  const billsForChart = bills.map(toBillCard) as any;
+  const totalPending = pendingBills.reduce((s, b) => s + Number(b.amount), 0);
+
 
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-8">

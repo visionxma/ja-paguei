@@ -111,15 +111,34 @@ const GroupsPage = () => {
           <div className="space-y-4 mt-2">
             <div>
               <Label className="text-xs text-muted-foreground mb-1.5 block">Nome do grupo</Label>
-              <Input value={newName} onChange={e => setNewName(e.target.value)} placeholder="Ex: Apartamento Centro" className="bg-secondary border-border text-foreground" />
+              <Input
+                value={newName}
+                onChange={e => setNewName(e.target.value.slice(0, 100))}
+                placeholder="Ex: Apartamento Centro"
+                className="bg-secondary border-border text-foreground"
+              />
+              {newName.length >= 90 && (
+                <p className="text-xs text-muted-foreground mt-1">{newName.length}/100 caracteres</p>
+              )}
             </div>
             <div>
               <Label className="text-xs text-muted-foreground mb-1.5 block">Descrição (opcional)</Label>
-              <Input value={newDesc} onChange={e => setNewDesc(e.target.value)} placeholder="Ex: Contas do apê" className="bg-secondary border-border text-foreground" />
+              <Input
+                value={newDesc}
+                onChange={e => setNewDesc(e.target.value.slice(0, 300))}
+                placeholder="Ex: Contas do apê"
+                className="bg-secondary border-border text-foreground"
+              />
             </div>
             <button
-              onClick={() => createMutation.mutate()}
-              disabled={!newName || createMutation.isPending}
+              onClick={() => {
+                if (!newName.trim()) {
+                  import('sonner').then(({ toast }) => toast.error('Nome do grupo é obrigatório'));
+                  return;
+                }
+                createMutation.mutate();
+              }}
+              disabled={!newName.trim() || createMutation.isPending}
               className="w-full gradient-primary text-primary-foreground font-semibold py-3 rounded-xl disabled:opacity-50"
             >
               {createMutation.isPending ? 'Criando...' : 'Criar Grupo'}
