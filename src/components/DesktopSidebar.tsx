@@ -1,6 +1,8 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { Home, Users, UserCheck, Clock, User } from 'lucide-react';
 import appIcon from '@/assets/japaguei-icon.png';
+import NotificationBell from '@/components/NotificationBell';
+import GlobalSearch from '@/components/GlobalSearch';
 
 const navItems = [
   { to: '/', icon: Home, label: 'Início' },
