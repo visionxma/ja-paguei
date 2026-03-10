@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Plus, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -12,7 +12,7 @@ import { useFormat } from '@/contexts/FormatContext';
 import { fetchPersonalBills, createBill, updateBill, updateBillStatus, deleteBill, uploadAttachment } from '@/lib/api';
 import { toBillCard, buildMonthlyData, type BillRow } from '@/lib/bill-utils';
 import { Bill } from '@/types/finance';
-import { useBillDueNotifications } from '@/hooks/useNotifications';
+import { useBillDueNotifications, useNotificationPermission } from '@/hooks/useNotifications';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -37,6 +37,14 @@ const Dashboard = () => {
   const [selectedCategory, setSelectedCategory] = useState('todas');
   const [periodFilter, setPeriodFilter] = useState('todos');
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
+  // Auto-request notification permission on first visit
+  const { permission, requestPermission } = useNotificationPermission();
+  useEffect(() => {
+    if (permission === 'default') {
+      requestPermission();
+    }
+  }, [permission, requestPermission]);
 
   // Trigger browser notifications for bills near due date
   useBillDueNotifications();
