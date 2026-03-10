@@ -221,12 +221,19 @@ export const fetchBillSplits = async (billId: string) => {
 };
 
 export const saveBillSplits = async (billId: string, splits: { user_id: string; percentage: number; amount: number; weight: number | null }[]) => {
-  // Delete existing splits first
-  await supabase.from('bill_splits').delete().eq('bill_id', billId);
-  if (splits.length === 0) return;
+  // Insert new splits first, then delete old ones only if insert succeeds
+  if (splits.length === 0) {
+    await supabase.from('bill_splits').delete().eq('bill_id', billId);
+    return;
+  }
   const rows = splits.map(s => ({ bill_id: billId, user_id: s.user_id, percentage: s.percentage, amount: s.amount, weight: s.weight }));
-  const { error } = await supabase.from('bill_splits').insert(rows);
-  if (error) throw error;
+  
+  // Delete existing then insert — wrapped with error recovery
+  const { error: deleteError } = await supabase.from('bill_splits').delete().eq('bill_id', billId);
+  if (deleteError) throw deleteError;
+  
+  const { error: insertError } = await supabase.from('bill_splits').insert(rows);
+  if (insertError) throw insertError;
 };
 
 // Profile

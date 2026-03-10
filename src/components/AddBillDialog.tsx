@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { format } from 'date-fns';
-import { CalendarIcon, Paperclip, Upload, Camera, X, FileText, Image as ImageIcon } from 'lucide-react';
+import { CalendarIcon, Paperclip, Upload, Camera, X, FileText, Image as ImageIcon, AlertCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -97,10 +97,27 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
     setAmountDisplay(formatCurrencyInput(raw));
   };
 
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
-      setPendingFiles(prev => [...prev, ...Array.from(files)]);
+      const validFiles: File[] = [];
+      for (const file of Array.from(files)) {
+        if (file.size > MAX_FILE_SIZE) {
+          import('sonner').then(({ toast }) => toast.error(`"${file.name}" excede o limite de 10MB.`));
+          continue;
+        }
+        if (!ALLOWED_TYPES.includes(file.type) && !file.type.startsWith('image/')) {
+          import('sonner').then(({ toast }) => toast.error(`"${file.name}" — tipo de arquivo não suportado.`));
+          continue;
+        }
+        validFiles.push(file);
+      }
+      if (validFiles.length > 0) {
+        setPendingFiles(prev => [...prev, ...validFiles]);
+      }
     }
     e.target.value = '';
   };
@@ -114,16 +131,44 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
     return <FileText size={14} className="text-primary shrink-0" />;
   };
 
-  const getFilePreview = (file: File) => {
-    if (file.type.startsWith('image/')) {
-      return URL.createObjectURL(file);
-    }
-    return null;
-  };
+  // Memoize object URLs to prevent memory leaks
+  const filePreviewUrls = useMemo(() => {
+    return pendingFiles.map(file => {
+      if (file.type.startsWith('image/')) {
+        return URL.createObjectURL(file);
+      }
+      return null;
+    });
+  }, [pendingFiles]);
+
+  // Cleanup object URLs on unmount or when files change
+  useEffect(() => {
+    return () => {
+      filePreviewUrls.forEach(url => {
+        if (url) URL.revokeObjectURL(url);
+      });
+    };
+  }, [filePreviewUrls]);
+
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   const handleSubmit = () => {
+    const errors: string[] = [];
+    const trimmedDesc = description.trim();
+    if (!trimmedDesc) errors.push('Nome da conta é obrigatório');
+    if (trimmedDesc.length > 200) errors.push('Nome da conta deve ter no máximo 200 caracteres');
+    
     const amount = parseCurrencyToNumber(amountDisplay);
-    if (!description || amount <= 0) return;
+    if (amount <= 0) errors.push('Valor deve ser maior que zero');
+    if (amount > 999999999) errors.push('Valor excede o limite permitido');
+    
+    if (notes && notes.length > 1000) errors.push('Descrição deve ter no máximo 1000 caracteres');
+    
+    if (errors.length > 0) {
+      setValidationErrors(errors);
+      return;
+    }
+    setValidationErrors([]);
     const dueDateStr = dueDate ? format(dueDate, 'yyyy-MM-dd') : undefined;
     const startDateStr = startDate ? format(startDate, 'yyyy-MM-dd') : undefined;
 
@@ -162,6 +207,17 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
           <DialogTitle className="font-display text-lg">{isEditing ? 'Editar Conta' : 'Nova Conta'}</DialogTitle>
           <p className="text-sm text-muted-foreground">{isEditing ? 'Atualize os dados da conta.' : 'Adicione uma conta para acompanhar.'}</p>
         </DialogHeader>
+
+        {/* Validation errors */}
+          {validationErrors.length > 0 && (
+            <div className="bg-destructive/10 border border-destructive/30 rounded-xl p-3 space-y-1">
+              {validationErrors.map((err, i) => (
+                <p key={i} className="text-xs text-destructive flex items-center gap-1.5">
+                  <AlertCircle size={12} className="shrink-0" /> {err}
+                </p>
+              ))}
+            </div>
+          )}
 
         <div className="space-y-4 mt-2">
           {/* Nome da conta */}
@@ -364,7 +420,7 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
             {pendingFiles.length > 0 && (
               <div className="mt-2 space-y-1.5">
                 {pendingFiles.map((file, i) => {
-                  const preview = getFilePreview(file);
+                  const preview = filePreviewUrls[i];
                   return (
                     <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-secondary/50 border border-border/50">
                       {preview ? (
