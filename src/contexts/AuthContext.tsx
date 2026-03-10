@@ -68,7 +68,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     // Then: listen for auth changes (only process after initial check)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsPasswordRecovery(true);
+      }
       if (!initialSessionChecked.current) return;
       setSession(session);
       setUser(session?.user ?? null);
