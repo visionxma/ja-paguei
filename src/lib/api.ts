@@ -97,12 +97,26 @@ export const fetchGroupDetail = async (groupId: string) => {
 };
 
 export const fetchGroupMembers = async (groupId: string) => {
-  const { data, error } = await supabase
+  const { data: members, error } = await supabase
     .from('group_members')
-    .select('*, profiles(display_name, avatar_url, email)')
+    .select('*')
     .eq('group_id', groupId);
   if (error) throw error;
-  return data;
+  if (!members || members.length === 0) return [];
+
+  // Fetch profiles for all member user_ids
+  const userIds = members.map(m => m.user_id);
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('user_id, display_name, avatar_url, email')
+    .in('user_id', userIds);
+
+  // Merge profiles into members
+  const profileMap = new Map((profiles || []).map(p => [p.user_id, p]));
+  return members.map(m => ({
+    ...m,
+    profiles: profileMap.get(m.user_id) || null,
+  }));
 };
 
 export const createGroup = async (name: string, description: string, userId: string) => {
