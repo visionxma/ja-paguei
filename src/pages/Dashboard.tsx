@@ -38,6 +38,9 @@ const Dashboard = () => {
   const [periodFilter, setPeriodFilter] = useState('todos');
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
+  // Trigger browser notifications for bills near due date
+  useBillDueNotifications();
+
   const { data: bills = [], isLoading } = useQuery({
     queryKey: ['personal-bills', user?.id],
     queryFn: () => fetchPersonalBills(user!.id),
