@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Plus, AlertTriangle } from 'lucide-react';
+import { Plus, AlertTriangle, FileDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import BillCard from '@/components/BillCard';
@@ -14,6 +14,7 @@ import { toBillCard, buildMonthlyData, type BillRow } from '@/lib/bill-utils';
 import { Bill } from '@/types/finance';
 import { useBillDueNotifications, useNotificationPermission } from '@/hooks/useNotifications';
 import { toast } from 'sonner';
+import { generateReportPDF } from '@/lib/generate-report-pdf';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -27,7 +28,7 @@ import {
 
 const Dashboard = () => {
   const { user, profile } = useAuth();
-  const { formatCurrency } = useFormat();
+  const { formatCurrency, formatDate } = useFormat();
   const queryClient = useQueryClient();
   const [showAddBill, setShowAddBill] = useState(false);
   const [editBill, setEditBill] = useState<ReturnType<typeof toBillCard> | null>(null);
@@ -240,12 +241,28 @@ const Dashboard = () => {
         </motion.div>
       </div>
 
-      <div className="px-4 md:px-8 flex gap-2 mb-4">
+      <div className="px-4 md:px-8 flex gap-2 mb-4 items-center">
         {(['contas', 'graficos'] as const).map(tab => (
           <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${activeTab === tab ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}>
             {tab === 'contas' ? 'Contas' : 'Gráficos'}
           </button>
         ))}
+        <button
+          onClick={() => {
+            if (bills.length === 0) { toast.error('Nenhuma conta para exportar'); return; }
+            generateReportPDF({
+              bills,
+              userName: profile?.display_name || 'Usuário',
+              formatCurrency,
+              formatDate,
+            });
+            toast.success('Relatório PDF gerado com sucesso!');
+          }}
+          className="ml-auto flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium bg-secondary text-secondary-foreground hover:bg-accent transition-all"
+        >
+          <FileDown size={16} />
+          <span className="hidden sm:inline">Exportar PDF</span>
+        </button>
       </div>
 
       <div className="px-4 md:px-8">
