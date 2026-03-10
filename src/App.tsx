@@ -29,6 +29,7 @@ const SecurityPage = lazy(() => import("./pages/SecurityPage"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
+const JoinGroupPage = lazy(() => import("./pages/JoinGroupPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
