@@ -80,7 +80,7 @@ const LoginPage = () => {
     }
     setLoading(true);
     const { error } = await supabase.auth.signUp({
-      email,
+      email: trimmedEmail,
       password,
       options: {
         data: {

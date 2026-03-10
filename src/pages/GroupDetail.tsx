@@ -190,8 +190,8 @@ const GroupDetail = () => {
   const billsForChart = bills.map(toBillCard) as any;
   const totalPending = pendingBills.reduce((s, b) => s + Number(b.amount), 0);
 
-  // Build real monthly data
-  const monthlyData = (() => {
+  // Build real monthly data (memoized)
+  const monthlyData = useMemo(() => {
     const monthMap = new Map<string, { month: string; total: number; paid: number; pending: number }>();
     bills.forEach(b => {
       const dateStr = b.due_date || b.created_at;
@@ -209,7 +209,7 @@ const GroupDetail = () => {
       else entry.pending += amount;
     });
     return Array.from(monthMap.entries()).sort(([a], [b]) => a.localeCompare(b)).map(([, v]) => v);
-  })();
+  }, [bills]);
 
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-8">
