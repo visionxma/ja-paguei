@@ -66,7 +66,21 @@ const GroupDetail = () => {
     enabled: !!id,
   });
 
-  const createMutation = useMutation({
+  // Fetch all splits for balance calculation
+  const { data: allSplits = [] } = useQuery({
+    queryKey: ['group-all-splits', id],
+    queryFn: async () => {
+      const billIds = bills.map(b => b.id);
+      if (billIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from('bill_splits')
+        .select('*')
+        .in('bill_id', billIds);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id && bills.length > 0,
+  });
     mutationFn: (bill: Parameters<typeof createBill>[0]) => createBill(bill),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['group-bills', id] }); toast.success('Conta criada!'); },
     onError: () => { toast.error('Erro ao criar conta'); },
