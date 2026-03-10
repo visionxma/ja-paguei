@@ -37,6 +37,7 @@ const GroupDetail = () => {
   const [editBill, setEditBill] = useState<ReturnType<typeof toBillCard> | null>(null);
   const [attachBillId, setAttachBillId] = useState<string | null>(null);
   const [showInvite, setShowInvite] = useState(false);
+  const [showGroupProfile, setShowGroupProfile] = useState(false);
   const [activeTab, setActiveTab] = useState<'contas' | 'graficos'>('contas');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('todas');
