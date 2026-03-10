@@ -52,12 +52,26 @@ const LoginPage = () => {
   };
 
   const handleSignUp = async () => {
-    if (!email || !password || !displayName.trim()) {
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedName = displayName.trim();
+    if (!trimmedEmail || !password || !trimmedName) {
       toast.error('Preencha todos os campos');
+      return;
+    }
+    if (!validateEmail(trimmedEmail)) {
+      toast.error('Email inválido');
+      return;
+    }
+    if (trimmedName.length > 100) {
+      toast.error('Nome deve ter no máximo 100 caracteres');
       return;
     }
     if (password.length < 6) {
       toast.error('A senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+    if (password.length > 128) {
+      toast.error('Senha muito longa');
       return;
     }
     if (password !== confirmPassword) {
