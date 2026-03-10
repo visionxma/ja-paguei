@@ -283,6 +283,12 @@ const GroupDetail = () => {
         </motion.div>
       </div>
 
+      {allSplits.length > 0 && (
+        <div className="px-4 md:px-8 mb-4">
+          <GroupBalances members={members as any} bills={bills} splits={allSplits} />
+        </div>
+      )}
+
       <div className="px-4 md:px-8 flex gap-2 mb-4">
         {(['contas', 'graficos'] as const).map(tab => (
           <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${activeTab === tab ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}>
