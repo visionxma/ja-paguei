@@ -97,10 +97,27 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
     setAmountDisplay(formatCurrencyInput(raw));
   };
 
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
-      setPendingFiles(prev => [...prev, ...Array.from(files)]);
+      const validFiles: File[] = [];
+      for (const file of Array.from(files)) {
+        if (file.size > MAX_FILE_SIZE) {
+          import('sonner').then(({ toast }) => toast.error(`"${file.name}" excede o limite de 10MB.`));
+          continue;
+        }
+        if (!ALLOWED_TYPES.includes(file.type) && !file.type.startsWith('image/')) {
+          import('sonner').then(({ toast }) => toast.error(`"${file.name}" — tipo de arquivo não suportado.`));
+          continue;
+        }
+        validFiles.push(file);
+      }
+      if (validFiles.length > 0) {
+        setPendingFiles(prev => [...prev, ...validFiles]);
+      }
     }
     e.target.value = '';
   };
@@ -114,12 +131,24 @@ const AddBillDialog = ({ open, onOpenChange, onAdd, isGroup, members, editBill, 
     return <FileText size={14} className="text-primary shrink-0" />;
   };
 
-  const getFilePreview = (file: File) => {
-    if (file.type.startsWith('image/')) {
-      return URL.createObjectURL(file);
-    }
-    return null;
-  };
+  // Memoize object URLs to prevent memory leaks
+  const filePreviewUrls = useMemo(() => {
+    return pendingFiles.map(file => {
+      if (file.type.startsWith('image/')) {
+        return URL.createObjectURL(file);
+      }
+      return null;
+    });
+  }, [pendingFiles]);
+
+  // Cleanup object URLs on unmount or when files change
+  useEffect(() => {
+    return () => {
+      filePreviewUrls.forEach(url => {
+        if (url) URL.revokeObjectURL(url);
+      });
+    };
+  }, [filePreviewUrls]);
 
   const handleSubmit = () => {
     const amount = parseCurrencyToNumber(amountDisplay);
