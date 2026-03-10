@@ -51,6 +51,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const LoginRedirect = () => {
+  const { isPasswordRecovery } = useAuth();
+  if (isPasswordRecovery) return <Navigate to="/reset-password" replace />;
   const redirect = new URLSearchParams(window.location.search).get('redirect') || '/';
   return <Navigate to={redirect} replace />;
 };
