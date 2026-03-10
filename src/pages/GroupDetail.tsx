@@ -279,7 +279,7 @@ const GroupDetail = () => {
         editBill={editBill}
         onEdit={handleEditSubmit}
         isGroup
-        members={members as { user_id: string; profiles: { display_name: string | null } | null }[]}
+        members={members as unknown as { user_id: string; profiles: { display_name: string | null } | null }[]}
         existingSplits={editSplits}
       />
 
