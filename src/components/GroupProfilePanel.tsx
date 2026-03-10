@@ -130,9 +130,12 @@ const GroupProfilePanel = ({ open, onClose, group, members, onInvite, onLeaveGro
     try {
       const { error } = await supabase.from('group_members').update({ role: newRole }).eq('id', targetMember.id);
       if (error) throw error;
-      queryClient.invalidateQueries({ queryKey: ['group-members', group.id] });
+      await queryClient.invalidateQueries({ queryKey: ['group-members', group.id] });
       toast.success(newRole === 'admin' ? 'Membro promovido a admin!' : 'Admin rebaixado a membro!');
-    } catch { toast.error('Erro ao alterar função'); }
+    } catch (err) {
+      console.error('[GroupProfilePanel] promote/demote error:', err);
+      toast.error('Erro ao alterar função');
+    }
     setTargetMember(null);
     setConfirmAction(null);
   };
