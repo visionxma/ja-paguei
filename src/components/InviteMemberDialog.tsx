@@ -8,9 +8,9 @@ import { inviteToGroup } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFriends } from '@/hooks/useFriends';
 import { formatUserName } from '@/lib/utils';
+import UserAvatar from '@/components/UserAvatar';
 import { UserPlus, Mail, Users, User, Check } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 
 interface InviteMemberDialogProps {
   open: boolean;
@@ -27,12 +27,10 @@ const InviteMemberDialog = ({ open, onOpenChange, groupId, existingMemberIds = [
   const [addingId, setAddingId] = useState<string | null>(null);
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
 
-  // Filter friends not already in group
   const availableFriends = useMemo(() => {
     return friends.filter(f => !existingMemberIds.includes(f.friend_user_id));
   }, [friends, existingMemberIds]);
 
-  // Email suggestions from friends while typing
   const emailSuggestions = useMemo(() => {
     if (!email.trim() || email.length < 2) return [];
     const q = email.toLowerCase();
@@ -88,16 +86,6 @@ const InviteMemberDialog = ({ open, onOpenChange, groupId, existingMemberIds = [
     onOpenChange(val);
   };
 
-  const Avatar = ({ url, name }: { url: string | null; name: string | null }) => (
-    url ? (
-      <img src={url} alt="" className="w-9 h-9 rounded-full object-cover shrink-0" />
-    ) : (
-      <div className="w-9 h-9 rounded-full gradient-primary flex items-center justify-center text-primary-foreground text-xs font-bold shrink-0">
-        {(name || '?')[0]?.toUpperCase()}
-      </div>
-    )
-  );
-
   return (
     <Sheet open={open} onOpenChange={handleClose}>
       <SheetContent side="bottom" className="bg-card border-border text-foreground rounded-t-2xl max-h-[85vh] flex flex-col pb-safe">
@@ -118,7 +106,6 @@ const InviteMemberDialog = ({ open, onOpenChange, groupId, existingMemberIds = [
               </TabsTrigger>
             </TabsList>
 
-            {/* Friends Tab */}
             <TabsContent value="friends" className="space-y-2 max-h-[50vh] overflow-y-auto">
               {availableFriends.length === 0 ? (
                 <div className="text-center py-6">
@@ -132,7 +119,7 @@ const InviteMemberDialog = ({ open, onOpenChange, groupId, existingMemberIds = [
                   const isAdding = addingId === friend.friend_user_id;
                   return (
                     <div key={friend.id} className="flex items-center gap-3 p-2.5 rounded-xl bg-secondary/50">
-                      <Avatar url={friend.avatar_url} name={friend.display_name} />
+                      <UserAvatar url={friend.avatar_url} name={friend.display_name} size="sm" />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{formatUserName(friend.display_name) || 'Usuário'}</p>
                         <p className="text-xs text-muted-foreground truncate">{friend.email}</p>
@@ -160,7 +147,6 @@ const InviteMemberDialog = ({ open, onOpenChange, groupId, existingMemberIds = [
               )}
             </TabsContent>
 
-            {/* Email Tab */}
             <TabsContent value="email" className="space-y-3">
               <div>
                 <Label className="text-xs text-muted-foreground mb-1.5 block flex items-center gap-1">
@@ -177,19 +163,16 @@ const InviteMemberDialog = ({ open, onOpenChange, groupId, existingMemberIds = [
                 />
               </div>
 
-              {/* Email suggestions */}
               {emailSuggestions.length > 0 && (
                 <div className="space-y-1">
                   <p className="text-xs text-muted-foreground">Sugestões de amigos</p>
                   {emailSuggestions.map(s => (
                     <button
                       key={s.id}
-                      onClick={() => {
-                        setEmail(s.email || '');
-                      }}
+                      onClick={() => setEmail(s.email || '')}
                       className="w-full flex items-center gap-2.5 p-2 rounded-lg hover:bg-secondary/80 transition-colors text-left"
                     >
-                      <Avatar url={s.avatar_url} name={s.display_name} />
+                      <UserAvatar url={s.avatar_url} name={s.display_name} size="sm" />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{formatUserName(s.display_name) || 'Usuário'}</p>
                         <p className="text-xs text-muted-foreground truncate">{s.email}</p>

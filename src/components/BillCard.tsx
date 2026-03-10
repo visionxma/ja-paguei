@@ -7,7 +7,7 @@ interface BillCardProps {
   bill: Bill;
   onToggleStatus?: (id: string) => void;
   onDelete?: (id: string) => void;
-  onEdit?: (bill: any) => void;
+  onEdit?: (bill: Bill) => void;
   onOpenAttachments?: (billId: string) => void;
   responsibleName?: string;
   isToggling?: boolean;
@@ -84,7 +84,6 @@ const BillCard = ({ bill, onToggleStatus, onDelete, onEdit, onOpenAttachments, r
         </div>
       </div>
 
-      {/* Action buttons */}
       <div className="flex items-center gap-1 mt-2 pt-2 border-t border-border/50">
         {onOpenAttachments && (
           <button onClick={() => onOpenAttachments(bill.id)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors px-2 py-1 rounded-lg hover:bg-primary/10">
