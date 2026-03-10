@@ -189,7 +189,7 @@ const GroupProfilePanel = ({ open, onClose, group, members, onInvite, onLeaveGro
               <button onClick={onClose} className="p-1.5 rounded-full hover:bg-muted transition-colors">
                 <X size={20} />
               </button>
-              <h2 className="font-display font-semibold text-lg">Info do grupo</h2>
+              <h2 className="font-display font-semibold text-lg">Painel do Grupo</h2>
             </div>
 
             <div className="flex-1 overflow-y-auto">
