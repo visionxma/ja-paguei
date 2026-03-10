@@ -28,7 +28,7 @@ const JoinGroupPage = () => {
         const { data: group, error: groupError } = await supabase
           .from('groups')
           .select('id, name')
-          .eq('invite_code' as string, code!)
+          .eq('invite_code', code!)
           .maybeSingle();
 
         if (groupError || !group) {
