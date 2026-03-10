@@ -256,7 +256,7 @@ const GroupDetail = () => {
         ))}
       </div>
 
-      <div className="px-4">
+      <div className="px-4 md:px-8">
         {loadingBills ? (
           <div className="flex justify-center py-8"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
         ) : activeTab === 'contas' ? (
