@@ -307,6 +307,31 @@ const GroupDetail = () => {
 
       <InviteMemberDialog open={showInvite} onOpenChange={setShowInvite} groupId={id!} existingMemberIds={members.map(m => m.user_id)} />
 
+      <GroupProfilePanel
+        open={showGroupProfile}
+        onClose={() => setShowGroupProfile(false)}
+        group={group as Parameters<typeof GroupProfilePanel>[0]['group']}
+        members={members as Parameters<typeof GroupProfilePanel>[0]['members']}
+        onInvite={() => { setShowGroupProfile(false); setShowInvite(true); }}
+        onLeaveGroup={async () => {
+          const self = members.find(m => m.user_id === user?.id);
+          if (self) {
+            try {
+              await removeGroupMember(self.id);
+              toast.success('Você saiu do grupo');
+              navigate('/groups');
+            } catch { toast.error('Erro ao sair do grupo'); }
+          }
+        }}
+        onDeleteGroup={async () => {
+          try {
+            await deleteGroup(group.id);
+            toast.success('Grupo excluído');
+            navigate('/groups');
+          } catch { toast.error('Erro ao excluir grupo'); }
+        }}
+      />
+
       <AlertDialog open={!!deleteConfirmId} onOpenChange={(open) => { if (!open) setDeleteConfirmId(null); }}>
         <AlertDialogContent className="bg-card border-border text-foreground max-w-sm mx-auto">
           <AlertDialogHeader>
