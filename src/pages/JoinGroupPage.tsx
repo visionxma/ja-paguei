@@ -24,10 +24,10 @@ const JoinGroupPage = () => {
 
     const joinGroup = async () => {
       try {
-        // Find group by invite_code
-        const { data: group, error: groupError } = await supabase
+        // Find group by invite_code  
+        const { data: group, error: groupError } = await (supabase
           .from('groups')
-          .select('id, name')
+          .select('id, name') as any)
           .eq('invite_code', code!)
           .maybeSingle();
 
