@@ -10,6 +10,7 @@ import { NavigationGuardProvider } from "@/contexts/NavigationGuardContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import BottomNav from "@/components/BottomNav";
 import Header from "@/components/Header";
+import DesktopSidebar from "@/components/DesktopSidebar";
 import ScrollToTop from "@/components/ScrollToTop";
 import UpdatePrompt from "@/components/UpdatePrompt";
 import Dashboard from "./pages/Dashboard";
