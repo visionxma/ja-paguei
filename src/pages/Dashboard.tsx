@@ -7,6 +7,7 @@ import FinanceCharts from '@/components/FinanceCharts';
 import AddBillDialog from '@/components/AddBillDialog';
 import AttachmentsDialog from '@/components/AttachmentsDialog';
 import SearchFilterBar from '@/components/SearchFilterBar';
+import BudgetGoals from '@/components/BudgetGoals';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFormat } from '@/contexts/FormatContext';
 import { fetchPersonalBills, createBill, updateBill, updateBillStatus, deleteBill, uploadAttachment } from '@/lib/api';
